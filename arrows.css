@@ -1,0 +1,82 @@
+.__body * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#__arrow-canvas {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999998;
+    top: 0;
+    left: 0;
+}
+
+#tools {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    padding: 6px;
+    border: 2px solid red;
+    display: grid;
+    gap: 10px;
+    background-color: #fff;
+}
+.eraserBtn,
+.selectBtn,
+.textBtn,
+.rectangleBtn,
+.arrowBtn,
+.circleBtn,
+.cursorBtn,
+.clearBtn,
+.undoBtn,
+.redoBtn,
+.saveBtn,
+.colorInput,
+.rangeInput {
+    all: unset !important;
+    margin: 0 !important;
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 8px !important;
+    border: 2px solid gray !important;
+    padding: 4px !important;
+    color: black !important;
+    font-size: 20px !important;
+    text-align: center !important;
+    background-color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1 !important;
+}
+.saveBtn:active {
+    background-color: gray ;
+}
+
+.undoBtn:disabled,
+.redoBtn:disabled {
+    cursor: not-allowed;
+    background-color: #f0f0f0;
+}
+
+.undoBtn:active,
+.redoBtn:active {
+    background-color: gray;
+}
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.2);
+    z-index: 9999999;
+}
+
+.grabArea {
+    height: 15px;
+    cursor: grab;
+}
+
+
