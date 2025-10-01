@@ -324,9 +324,6 @@
                     active ? "gray" : "white",
                     "important"
                 );
-                if (el.className === "selectBtn") {
-                    console.log("selectBtn");
-                }
             };
             setBg(cursorBtn, CTRL.currentTool === null);
             setBg(arrowBtn, CTRL.currentTool === "arrow");
@@ -341,6 +338,8 @@
             } else if (CTRL.currentTool === "eraser") {
                 const url = chrome.runtime.getURL("./icons/eraser.png");
                 document.body.style.cursor = `url("${url}") 8 8, auto`;
+            } else if (CTRL.currentTool === "text") {
+                document.body.style.cursor = "text";
             } else {
                 document.body.style.cursor = "";
             }
