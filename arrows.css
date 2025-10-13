@@ -69,7 +69,7 @@
 }
 
 #overlay .grabArea {
-    grid-column: 1 / -1; /* Span all columns */
+    grid-column: 1 / -1;  
     height: 20px;
     cursor: grab;
     display: flex;

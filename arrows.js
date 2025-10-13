@@ -107,7 +107,7 @@
         colorInput.type = "color";
         colorInput.className = "colorInput";
         colorInput.title = "Color";
-        colorInput.value = "#ff0000";
+        colorInput.value = "#34656D";
         CTRL.color = colorInput.value;
         colorInput.addEventListener("change", (e) => {
             CTRL.color = e.target.value;
@@ -119,6 +119,15 @@
         arrowBtn.title = "Arrow";
         arrowBtn.addEventListener("click", () => {
             CTRL.currentTool = CTRL.currentTool === "arrow" ? null : "arrow";
+            updateToolStyles();
+        });
+
+        const lineBtn = document.createElement("button");
+        lineBtn.textContent = "—";
+        lineBtn.className = "lineBtn";
+        lineBtn.title = "Line";
+        lineBtn.addEventListener("click", () => {
+            CTRL.currentTool = CTRL.currentTool === "line" ? null : "line";
             updateToolStyles();
         });
 
@@ -230,11 +239,36 @@
             link.click();
         });
 
+        const screenShot = document.createElement("button");
+        screenShot.textContent = "⎙";
+        screenShot.className = "screenShot";
+        screenShot.title = "Take a Screen Shot";
+        screenShot.addEventListener("click", async () => {
+            try {
+                // Try to use Chrome extension API first
+                chrome.runtime.sendMessage({ action: "capture" }, (response) => {
+                    if (chrome.runtime.lastError) {
+                        console.log(
+                            "Extension API failed, using fallback method:",
+                            chrome.runtime.lastError.message
+                        );
+                        // Fallback: use getDisplayMedia directly
+                        captureWithGetDisplayMedia();
+                    }
+                });
+            } catch (error) {
+                console.log("Extension API not available, using fallback method:", error);
+                // Fallback: use getDisplayMedia directly
+                captureWithGetDisplayMedia();
+            }
+        });
+
         tools.append(
             grabArea,
             cursorBtn,
             colorInput,
             arrowBtn,
+            lineBtn,
             circleBtn,
             rectangleBtn,
             textBtn,
@@ -243,7 +277,8 @@
             undoBtn,
             redoBtn,
             clearBtn,
-            saveBtn
+            saveBtn,
+            screenShot
         );
         overlay.append(tools);
         document.body.append(overlay);
@@ -282,6 +317,141 @@
         }
 
         const MIN_DRAG_PX = 5;
+        let screenshotInProgress = false; // Global flag to prevent duplicate screenshots
+
+        function captureCanvasAsImage() {
+            // This function is now deprecated - use captureWithGetDisplayMedia directly
+            console.log("captureCanvasAsImage called - redirecting to getDisplayMedia");
+            captureWithGetDisplayMedia();
+        }
+
+        function captureWithGetDisplayMedia() {
+            // Method 2: Use getDisplayMedia API (requires user permission)
+            if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+                navigator.mediaDevices
+                    .getDisplayMedia({
+                        video: {
+                            mediaSource: "screen",
+                            width: { ideal: window.innerWidth },
+                            height: { ideal: window.innerHeight },
+                        },
+                    })
+                    .then((stream) => {
+                        const video = document.createElement("video");
+                        video.srcObject = stream;
+                        video.play();
+
+                        video.onloadedmetadata = () => {
+                            const canvas = document.createElement("canvas");
+                            const ctx = canvas.getContext("2d");
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+
+                            video.ontimeupdate = () => {
+                                ctx.drawImage(video, 0, 0);
+
+                                // Stop the stream
+                                stream.getTracks().forEach((track) => track.stop());
+
+                                // Download the screenshot
+                                const link = document.createElement("a");
+                                link.href = canvas.toDataURL("image/png");
+                                link.download = "Screen_Shot.png";
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                console.log("Full page captured with getDisplayMedia");
+
+                                // Reset the flag
+                                screenshotInProgress = false;
+                            };
+                        };
+                    })
+                    .catch((error) => {
+                        console.log("getDisplayMedia failed:", error);
+                        // Method 3: Create a composite with page content
+                        createPageComposite();
+                    });
+            } else {
+                console.log("getDisplayMedia not supported, using composite method");
+                createPageComposite();
+            }
+        }
+
+        function createPageComposite() {
+            try {
+                // Method 3: Create a composite image by capturing visible elements
+                const compositeCanvas = document.createElement("canvas");
+                const ctx = compositeCanvas.getContext("2d");
+
+                compositeCanvas.width = window.innerWidth;
+                compositeCanvas.height = window.innerHeight;
+
+                // Fill with white background
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
+
+                // Try to capture text content
+                const textContent =
+                    document.body.innerText || document.body.textContent || "";
+                if (textContent) {
+                    ctx.fillStyle = "black";
+                    ctx.font = "14px Arial";
+                    ctx.textBaseline = "top";
+
+                    // Simple text rendering (basic implementation)
+                    const lines = textContent.split("\n");
+                    let y = 20;
+                    for (let i = 0; i < Math.min(lines.length, 50); i++) {
+                        // Limit to 50 lines
+                        ctx.fillText(lines[i].substring(0, 100), 20, y); // Limit line length
+                        y += 20;
+                        if (y > compositeCanvas.height - 40) break;
+                    }
+                }
+
+                // Draw our canvas on top
+                ctx.drawImage(CTRL.canvas, 0, 0);
+
+                // Download the composite
+                const link = document.createElement("a");
+                link.href = compositeCanvas.toDataURL("image/png");
+                link.download = "Screen_Shot.png";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                console.log("Composite screenshot created");
+                // Reset the flag
+                screenshotInProgress = false;
+            } catch (error) {
+                console.error("Failed to create composite:", error);
+                // Final fallback: canvas only
+                captureCanvasOnly();
+            }
+        }
+
+        function captureCanvasOnly() {
+            try {
+                const canvas = CTRL.canvas;
+                const image = canvas.toDataURL("image/png");
+                const link = document.createElement("a");
+                link.href = image;
+                link.download = "Canvas_Only.png";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                console.log("Canvas captured successfully");
+                // Reset the flag
+                screenshotInProgress = false;
+            } catch (error) {
+                console.error("Failed to capture canvas:", error);
+                alert(
+                    "Screenshot failed. Please try refreshing the page and clicking the extension icon again."
+                );
+                // Reset the flag even on error
+                screenshotInProgress = false;
+            }
+        }
 
         function resizeCanvas() {
             const ratio = Math.max(1, window.devicePixelRatio || 1);
@@ -327,6 +497,7 @@
             };
             setBg(cursorBtn, CTRL.currentTool === null);
             setBg(arrowBtn, CTRL.currentTool === "arrow");
+            setBg(lineBtn, CTRL.currentTool === "line");
             setBg(circleBtn, CTRL.currentTool === "circle");
             setBg(rectangleBtn, CTRL.currentTool === "rectangle");
             setBg(textBtn, CTRL.currentTool === "text");
@@ -507,6 +678,23 @@
             ctx.restore();
         }
 
+        function drawLine({ fromX, fromY, toX, toY, color, lineWidth = CTRL.lineWidth }) {
+            const ctx = CTRL.ctx;
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = Math.max(1, lineWidth) + 2;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = Math.max(1, lineWidth);
+            ctx.stroke();
+        }
+
         function drawText({
             x,
             y,
@@ -546,6 +734,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             CTRL.shapes.forEach((cord, idx) => {
                 if (cord.type === "arrow") drawArrow(cord);
+                else if (cord.type === "line") drawLine(cord);
                 else if (cord.type === "circle") drawCircle(cord);
                 else if (cord.type === "rectangle") drawRectangle(cord);
                 else if (cord.type === "text") drawText(cord);
@@ -607,7 +796,8 @@
             if (
                 shape.type === "rectangle" ||
                 shape.type === "circle" ||
-                shape.type === "arrow"
+                shape.type === "arrow" ||
+                shape.type === "line"
             ) {
                 const x = Math.min(shape.fromX, shape.toX);
                 const y = Math.min(shape.fromY, shape.toY);
@@ -709,7 +899,7 @@
                     const b = getShapeBBox(s);
                     if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h)
                         return i;
-                } else if (s.type === "arrow") {
+                } else if (s.type === "arrow" || s.type === "line") {
                     const dist = distanceToSegment(x, y, s.fromX, s.fromY, s.toX, s.toY);
                     if (dist <= Math.max(6, (s.lineWidth || CTRL.lineWidth) + 4))
                         return i;
@@ -872,6 +1062,7 @@
                 CTRL.currentCord.lineWidth = CTRL.lineWidth;
                 renderCanvas();
                 if (CTRL.currentTool === "arrow") drawArrow(CTRL.currentCord);
+                else if (CTRL.currentTool === "line") drawLine(CTRL.currentCord);
                 else if (CTRL.currentTool === "circle") drawCircle(CTRL.currentCord);
                 else if (CTRL.currentTool === "rectangle")
                     drawRectangle(CTRL.currentCord);
@@ -893,7 +1084,7 @@
                         s.toX += dx;
                         s.fromY += dy;
                         s.toY += dy;
-                    } else if (s.type === "arrow") {
+                    } else if (s.type === "arrow" || s.type === "line") {
                         s.fromX += dx;
                         s.toX += dx;
                         s.fromY += dy;
@@ -978,6 +1169,28 @@
             }
         };
         window.addEventListener("keydown", CTRL.__keyHandler);
+
+        // Listen for screenshot response from background script
+        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+            if (message.action === "imageCaptured" && message.imageUri) {
+                try {
+                    const link = document.createElement("a");
+                    link.href = message.imageUri;
+                    link.download = "Screen_Shot.png";
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    console.log("Screenshot downloaded successfully");
+                    // Reset the flag
+                    screenshotInProgress = false;
+                } catch (error) {
+                    console.error("Failed to download screenshot:", error);
+                    // Fallback to canvas capture
+                    captureCanvasAsImage();
+                }
+            }
+            return true; // Keep the message channel open for async responses
+        });
 
         window.__arrowController = CTRL;
 

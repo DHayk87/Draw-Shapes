@@ -3,7 +3,7 @@
     "name": "Shapes drawer",
     "version": "1.0",
     "description": "Draw shapes on pages",
-    "permissions": ["scripting", "activeTab"],
+    "permissions": ["scripting", "activeTab", "tabs", "downloads"],
     "icons": {
         "128": "icons/icon_128x128.png",
         "512": "icons/icon_512x512.png"
