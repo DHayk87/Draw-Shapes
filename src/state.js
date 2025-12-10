@@ -1,4 +1,3 @@
-// src/state.js
 window.drawingApp = {
     state: {
         isDrawing: false,

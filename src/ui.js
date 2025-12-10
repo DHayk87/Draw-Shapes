@@ -1,4 +1,3 @@
-// src/ui.js
 (function () {
     const app = window.drawingApp;
     const state = app.state;
@@ -37,7 +36,6 @@
             document.body.style.cursor = "move";
         } else if (state.currentTool === "eraser") {
             try {
-                // This can fail if the extension context is invalidated
                 if (chrome.runtime?.id) {
                     document.body.style.cursor = `url("${chrome.runtime.getURL(
                         "./icons/eraser.png"
@@ -64,7 +62,6 @@
     }
 
     function setTool(newTool) {
-        // If switching away from select tool, clear the selection
         if (state.currentTool === 'select' && newTool !== 'select') {
             state.selectedIndex = -1;
             app.renderCanvas();
@@ -113,7 +110,7 @@
             const value = slider.value;
             tooltip.textContent = value;
             const percent = (value - min) / (max - min);
-            const thumbWidth = 18; // From CSS
+            const thumbWidth = 18; 
             const trackWidth = slider.offsetWidth - thumbWidth;
             const offset = thumbWidth / 2 - thumbWidth * percent;
             tooltip.style.left = `${Math.round(trackWidth * percent) + offset}px`;
@@ -125,7 +122,6 @@
         });
         slider.addEventListener("change", onChange);
 
-        // Initial position
         setTimeout(updateTooltip, 0);
 
         container.append(tooltip, slider);
@@ -136,7 +132,6 @@
         const overlay = document.createElement("div");
         overlay.id = "overlay";
         state.overlay = overlay;
-        // ... (grabArea and button creation logic remains the same)
         const grabArea = document.createElement("div");
         grabArea.className = "grabArea";
         grabArea.insertAdjacentHTML(

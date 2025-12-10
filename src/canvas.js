@@ -1,4 +1,3 @@
-// src/canvas.js
 (function () {
     const app = window.drawingApp;
     const state = app.state;

@@ -178,7 +178,6 @@
             updateToolStyles();
         });
 
-        // persist color changes
         colorInput.addEventListener("input", () => {
             try {
                 localStorage.setItem(
@@ -245,20 +244,17 @@
         screenShot.title = "Take a Screen Shot";
         screenShot.addEventListener("click", async () => {
             try {
-                // Try to use Chrome extension API first
                 chrome.runtime.sendMessage({ action: "capture" }, (response) => {
                     if (chrome.runtime.lastError) {
                         console.log(
                             "Extension API failed, using fallback method:",
                             chrome.runtime.lastError.message
                         );
-                        // Fallback: use getDisplayMedia directly
                         captureWithGetDisplayMedia();
                     }
                 });
             } catch (error) {
                 console.log("Extension API not available, using fallback method:", error);
-                // Fallback: use getDisplayMedia directly
                 captureWithGetDisplayMedia();
             }
         });
@@ -317,16 +313,14 @@
         }
 
         const MIN_DRAG_PX = 5;
-        let screenshotInProgress = false; // Global flag to prevent duplicate screenshots
+        let screenshotInProgress = false; 
 
         function captureCanvasAsImage() {
-            // This function is now deprecated - use captureWithGetDisplayMedia directly
             console.log("captureCanvasAsImage called - redirecting to getDisplayMedia");
             captureWithGetDisplayMedia();
         }
 
         function captureWithGetDisplayMedia() {
-            // Method 2: Use getDisplayMedia API (requires user permission)
             if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
                 navigator.mediaDevices
                     .getDisplayMedia({
@@ -350,10 +344,8 @@
                             video.ontimeupdate = () => {
                                 ctx.drawImage(video, 0, 0);
 
-                                // Stop the stream
                                 stream.getTracks().forEach((track) => track.stop());
 
-                                // Download the screenshot
                                 const link = document.createElement("a");
                                 link.href = canvas.toDataURL("image/png");
                                 link.download = "Screen_Shot.png";
@@ -362,14 +354,12 @@
                                 document.body.removeChild(link);
                                 console.log("Full page captured with getDisplayMedia");
 
-                                // Reset the flag
                                 screenshotInProgress = false;
                             };
                         };
                     })
                     .catch((error) => {
                         console.log("getDisplayMedia failed:", error);
-                        // Method 3: Create a composite with page content
                         createPageComposite();
                     });
             } else {
@@ -380,18 +370,15 @@
 
         function createPageComposite() {
             try {
-                // Method 3: Create a composite image by capturing visible elements
                 const compositeCanvas = document.createElement("canvas");
                 const ctx = compositeCanvas.getContext("2d");
 
                 compositeCanvas.width = window.innerWidth;
                 compositeCanvas.height = window.innerHeight;
 
-                // Fill with white background
                 ctx.fillStyle = "white";
                 ctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
 
-                // Try to capture text content
                 const textContent =
                     document.body.innerText || document.body.textContent || "";
                 if (textContent) {
@@ -399,21 +386,17 @@
                     ctx.font = "14px Arial";
                     ctx.textBaseline = "top";
 
-                    // Simple text rendering (basic implementation)
                     const lines = textContent.split("\n");
                     let y = 20;
                     for (let i = 0; i < Math.min(lines.length, 50); i++) {
-                        // Limit to 50 lines
-                        ctx.fillText(lines[i].substring(0, 100), 20, y); // Limit line length
+                        ctx.fillText(lines[i].substring(0, 100), 20, y); 
                         y += 20;
                         if (y > compositeCanvas.height - 40) break;
                     }
                 }
 
-                // Draw our canvas on top
                 ctx.drawImage(CTRL.canvas, 0, 0);
 
-                // Download the composite
                 const link = document.createElement("a");
                 link.href = compositeCanvas.toDataURL("image/png");
                 link.download = "Screen_Shot.png";
@@ -421,11 +404,9 @@
                 link.click();
                 document.body.removeChild(link);
                 console.log("Composite screenshot created");
-                // Reset the flag
                 screenshotInProgress = false;
             } catch (error) {
                 console.error("Failed to create composite:", error);
-                // Final fallback: canvas only
                 captureCanvasOnly();
             }
         }
@@ -441,14 +422,12 @@
                 link.click();
                 document.body.removeChild(link);
                 console.log("Canvas captured successfully");
-                // Reset the flag
                 screenshotInProgress = false;
             } catch (error) {
                 console.error("Failed to capture canvas:", error);
                 alert(
                     "Screenshot failed. Please try refreshing the page and clicking the extension icon again."
                 );
-                // Reset the flag even on error
                 screenshotInProgress = false;
             }
         }
@@ -1170,7 +1149,6 @@
         };
         window.addEventListener("keydown", CTRL.__keyHandler);
 
-        // Listen for screenshot response from background script
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             if (message.action === "imageCaptured" && message.imageUri) {
                 try {
@@ -1181,15 +1159,13 @@
                     link.click();
                     link.remove();
                     console.log("Screenshot downloaded successfully");
-                    // Reset the flag
                     screenshotInProgress = false;
                 } catch (error) {
                     console.error("Failed to download screenshot:", error);
-                    // Fallback to canvas capture
                     captureCanvasAsImage();
                 }
             }
-            return true; // Keep the message channel open for async responses
+            return true; 
         });
 
         window.__arrowController = CTRL;
