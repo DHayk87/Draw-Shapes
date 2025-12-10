@@ -6,7 +6,14 @@ chrome.action.onClicked.addListener((tab) => {
 
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        files: ["arrows.js"],
+        files: [
+            "src/state.js",
+            "src/canvas.js",
+            "src/screenshot.js",
+            "src/ui.js",
+            "src/events.js",
+            "src/main.js",
+        ],
     });
 });
 
