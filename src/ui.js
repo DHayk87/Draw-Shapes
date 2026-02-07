@@ -12,15 +12,18 @@
         eraserBtn,
         undoBtn,
         redoBtn,
-        penBtn;
+        penBtn,
+        highlighterBtn;
 
     function updateToolStyles() {
-        const setBg = (el, active) =>
+        const setBg = (el, active) => {
+            if (!el) return;
             el.style.setProperty(
                 "background-color",
                 active ? "gray" : "white",
-                "important"
+                "important",
             );
+        };
         setBg(cursorBtn, state.currentTool === null);
         setBg(arrowBtn, state.currentTool === "arrow");
         setBg(lineBtn, state.currentTool === "line");
@@ -28,9 +31,17 @@
         setBg(rectangleBtn, state.currentTool === "rectangle");
         setBg(triangleBtn, state.currentTool === "triangle");
         setBg(textBtn, state.currentTool === "text");
+        setBg(highlighterBtn, state.currentTool === "highlighter");
         setBg(selectBtn, state.currentTool === "select");
         setBg(eraserBtn, state.currentTool === "eraser");
         setBg(penBtn, state.currentTool === "pen");
+
+        if (state.overlay) {
+            state.overlay.style.pointerEvents = state.currentTool ? "auto" : "none";
+        }
+        if (state.canvas) {
+            state.canvas.style.pointerEvents = state.currentTool ? "auto" : "none";
+        }
 
         if (state.currentTool === "select") {
             document.body.style.cursor = "move";
@@ -38,14 +49,12 @@
             try {
                 if (chrome.runtime?.id) {
                     document.body.style.cursor = `url("${chrome.runtime.getURL(
-                        "./icons/eraser.png"
+                        "./icons/eraser.png",
                     )}") 8 8, auto`;
                 }
             } catch (e) {
                 document.body.style.cursor = "auto";
-                console.warn(
-                    "Could not set eraser cursor, context may be invalidated."
-                );
+                console.warn("Could not set eraser cursor, context may be invalidated.");
             }
         } else if (state.currentTool === "text") {
             document.body.style.cursor = "text";
@@ -62,7 +71,7 @@
     }
 
     function setTool(newTool) {
-        if (state.currentTool === 'select' && newTool !== 'select') {
+        if (state.currentTool === "select" && newTool !== "select") {
             state.selectedIndex = -1;
             app.renderCanvas();
         }
@@ -90,6 +99,49 @@
         }
     };
 
+    app.showConfirm = function ({ title, message, onConfirm, onCancel }) {
+        const overlay = document.createElement("div");
+        overlay.className = "modal-overlay";
+
+        const modal = document.createElement("div");
+        modal.className = "modal-content";
+
+        const h3 = document.createElement("h3");
+        h3.textContent = title;
+
+        const p = document.createElement("p");
+        p.textContent = message;
+
+        const actions = document.createElement("div");
+        actions.className = "modal-actions";
+
+        const cancelBtn = document.createElement("button");
+        cancelBtn.className = "modal-btn-cancel";
+        cancelBtn.textContent = "Cancel";
+        cancelBtn.onclick = () => {
+            overlay.classList.add("closing");
+            setTimeout(() => overlay.remove(), 200);
+            if (onCancel) onCancel();
+        };
+
+        const confirmBtn = document.createElement("button");
+        confirmBtn.className = "modal-btn-confirm";
+        confirmBtn.textContent = "Clear All";
+        confirmBtn.onclick = () => {
+            overlay.classList.add("closing");
+            setTimeout(() => overlay.remove(), 200);
+            if (onConfirm) onConfirm();
+        };
+
+        actions.append(cancelBtn, confirmBtn);
+        modal.append(h3, p, actions);
+        overlay.append(modal);
+        document.body.append(overlay);
+
+        // Focus confirm for keyboard usability
+        confirmBtn.focus();
+    };
+
     function createSlider({ title, min, max, step, initialValue, onInput, onChange }) {
         const container = document.createElement("div");
         container.className = "slider-container";
@@ -110,7 +162,7 @@
             const value = slider.value;
             tooltip.textContent = value;
             const percent = (value - min) / (max - min);
-            const thumbWidth = 18; 
+            const thumbWidth = 18;
             const trackWidth = slider.offsetWidth - thumbWidth;
             const offset = thumbWidth / 2 - thumbWidth * percent;
             tooltip.style.left = `${Math.round(trackWidth * percent) + offset}px`;
@@ -128,25 +180,42 @@
         return { container, slider };
     }
 
+    const ICONS = {
+        cursor: '<svg viewBox="0 0 24 24"><path d="M7,2l12,11.2l-5.8,0.5l3.3,7.3l-2.2,1l-3.2-7.4L7,19V2z"/></svg>',
+        arrow: '<svg viewBox="0 0 24 24"><path d="M16.01,11H4v2h12.01v3L20,12l-3.99-4V11z"/></svg>',
+        line: '<svg viewBox="0 0 24 24"><path d="M21,13H3v-2h18V13z"/></svg>',
+        circle: '<svg viewBox="0 0 24 24"><path d="M12,2C6.47,2,2,6.47,2,12s4.47,10,10,10s10-4.47,10-10S17.53,2,12,2z M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8s8,3.59,8,8 S16.41,20,12,20z"/></svg>',
+        rectangle:
+            '<svg viewBox="0 0 24 24"><path d="M4,6v13h16V6H4z M18,17H6V8h12V17z"/></svg>',
+        triangle:
+            '<svg viewBox="0 0 24 24"><path d="M12,2L1,21h22L12,2z M12,6l7.53,13H4.47L12,6z"/></svg>',
+        text: '<svg viewBox="0 0 24 24"><path d="M5,4v3h5.5v12h3V7H19V4H5z"/></svg>',
+        highlighter:
+            '<svg viewBox="0 0 24 24"><path d="M20.71,5.63l-2.34-2.34c-0.39-0.39-1.02-0.39-1.41,0l-3.12,3.12L12,5.12c-0.78-0.78-2.05-0.78-2.83,0l-7.07,7.07 c-0.78,0.78-0.78,2.05,0,2.83l2.12,2.12l-1.41,1.41l1.41,1.41l1.41-1.41l2.12,2.12c0.78,0.78,2.05,0.78,2.83,0l7.07-7.07 c0.78-0.78,0.78-2.05,0-2.83l-1.29-1.29l3.12-3.12C21.1,6.65,21.1,6.02,20.71,5.63z M11.29,17.88L6.34,12.93l2.12-2.12l4.95,4.95 L11.29,17.88z"/></svg>',
+        pen: '<svg viewBox="0 0 24 24"><path d="M3,17.25V21h3.75L17.81,9.94l-3.75-3.75L3,17.25z M20.71,7.04c0.39-0.39,0.39-1.02,0-1.41l-2.34-2.34 c-0.39-0.39-1.02-0.39-1.41,0l-1.83,1.83l3.75,3.75L20.71,7.04z"/></svg>',
+        select: '<svg viewBox="0 0 24 24"><path d="M13,5.5V11h5.5l-6.5,6.5L5.5,11H11V5.5L13,5.5z M13,2H11v3.5H5.5V11H2v2h3.5v5.5H11V22h2v-3.5h5.5V13H22v-2h-3.5V5.5H13V2z"/></svg>',
+        undo: '<svg viewBox="0 0 24 24"><path d="M12.5,8C9.85,8,7.45,9,5.6,10.6L2,7v9h9l-3.38-3.38C8.95,11.53,10.63,11,12.5,11c3.54,0,6.55,2.31,7.6,5.5l2.37-0.78 C21.08,11.03,17.25,8,12.5,8z"/></svg>',
+        redo: '<svg viewBox="0 0 24 24"><path d="M18.4,10.6C16.55,9,14.15,8,11.5,8c-4.75,0-8.58,3.03-9.97,7.22l2.37,0.78C4.95,12.81,7.96,10.5,11.5,10.5 c1.87,0,3.55,0.53,4.88,1.62L13,15.5h9V6.5L18.4,10.6z"/></svg>',
+        clear: '<svg viewBox="0 0 24 24"><path d="M6,19c0,1.1,0.9,2,2,2h8c1.1,0,2-0.9,2-2V7H6V19z M19,4h-3.5l-1-1h-5l-1,1H5v2h14V4z"/></svg>',
+        save: '<svg viewBox="0 0 24 24"><path d="M17,3H5C3.89,3,3,3.9,3,5v14c0,1.1,0.89,2,2,2h14c1.1,0,2-0.9,2-2V7L17,3z M12,19c-1.66,0-3-1.34-3-3s1.34-3,3-3s3,1.34,3,3 S13.66,19,12,19z M15,9H5V5h10V9z"/></svg>',
+        screenshot:
+            '<svg viewBox="0 0 24 24"><path d="M21,19V5c0-1.1-0.9-2-2-2H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14C20.1,21,21,20.1,21,19z M8.5,13.5l2.5,3.01L14.5,12l4.5,6H5 L8.5,13.5z"/></svg>',
+    };
+
     app.createToolbar = function () {
         const overlay = document.createElement("div");
         overlay.id = "overlay";
         state.overlay = overlay;
+
+        const tools = document.createElement("div");
+        tools.id = "tools";
+        state.tools = tools;
+
         const grabArea = document.createElement("div");
         grabArea.className = "grabArea";
-        grabArea.insertAdjacentHTML(
-            "afterbegin",
-            '<svg width="36" height="12" viewBox="0 0 36 12" xmlns="http://www.w3.org/2000/svg"><g fill="#666">' +
-                [...Array(9)]
-                    .flatMap((_, i) =>
-                        [...Array(3)].map(
-                            (_, j) =>
-                                `<circle cx="${i * 4 + 2}" cy="${j * 4 + 2}" r="1.5"/>`
-                        )
-                    )
-                    .join("") +
-                "</g></svg>"
-        );
+        grabArea.innerHTML =
+            '<div class="grabHandle"></div>' +
+            '<span class="grabTitle">Shapes Drawer</span>';
 
         let offsetX = 0,
             offsetY = 0,
@@ -158,13 +227,18 @@
             offsetY = e.clientY - rect.top;
             e.preventDefault();
         });
+        let rafId = null;
         document.addEventListener("mousemove", (e) => {
             if (!isDragging) return;
-            Object.assign(tools.style, {
-                position: "absolute",
-                left: `${e.clientX - offsetX}px`,
-                top: `${e.clientY - offsetY}px`,
-                right: "auto",
+            if (rafId) return;
+            rafId = requestAnimationFrame(() => {
+                Object.assign(tools.style, {
+                    position: "absolute",
+                    left: `${e.clientX - offsetX}px`,
+                    top: `${e.clientY - offsetY}px`,
+                    right: "auto",
+                });
+                rafId = null;
             });
         });
         document.addEventListener("mouseup", () => {
@@ -175,84 +249,82 @@
             }
         });
 
-        const createButton = (text, title, className, onClick) => {
+        const createButton = (iconKey, title, className, onClick) => {
             const btn = document.createElement("button");
-            btn.innerHTML = text;
+            btn.innerHTML = ICONS[iconKey];
             btn.title = title;
             btn.className = className;
             btn.addEventListener("click", onClick);
             return btn;
         };
 
-        cursorBtn = createButton("↖", "Cursor", "cursorBtn", () => setTool(null));
-        arrowBtn = createButton("⇨", "Arrow", "arrowBtn", () => {
-            state.currentTool = state.currentTool === "arrow" ? null : "arrow";
-            updateToolStyles();
-        });
-        lineBtn = createButton("—", "Line", "lineBtn", () => {
-            state.currentTool = state.currentTool === "line" ? null : "line";
-            updateToolStyles();
-        });
-        rectangleBtn = createButton("▭", "Rectangle", "rectangleBtn", () => {
-            state.currentTool = state.currentTool === "rectangle" ? null : "rectangle";
-            updateToolStyles();
-        });
-        triangleBtn = createButton("△", "Triangle", "triangleBtn", () => {
-            state.currentTool = state.currentTool === "triangle" ? null : "triangle";
-            updateToolStyles();
-        });
-        circleBtn = createButton("◯", "Circle", "circleBtn", () => {
-            state.currentTool = state.currentTool === "circle" ? null : "circle";
-            updateToolStyles();
-        });
-        textBtn = createButton("⊤", "Text", "textBtn", () => {
-            state.currentTool = state.currentTool === "text" ? null : "text";
-            updateToolStyles();
-        });
-        penBtn = createButton("🖊️", "Pen", "penBtn", () => {
-            state.currentTool = state.currentTool === "pen" ? null : "pen";
-            updateToolStyles();
-        });
-        selectBtn = createButton("✥", "Select/Move", "selectBtn", () => {
-            state.currentTool = state.currentTool === "select" ? null : "select";
-            updateToolStyles();
-        });
-        eraserBtn = createButton(
-            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8.086 2.207a2 2 0 0 1 2.828 0l3.879 3.879a2 2 0 0 1 0 2.828l-5.5 5.5A2 2 0 0 1 7.879 15H5.12a2 2 0 0 1-1.414-.586l-2.5-2.5a2 2 0 0 1 0-2.828zm2.121.707a1 1 0 0 0-1.414 0L4.16 7.547l5.293 5.293 4.633-4.633a1 1 0 0 0 0-1.414zM8.746 13.547 3.453 8.254 1.914 9.793a1 1 0 0 0 0 1.414l2.5 2.5a1 1 0 0 0 .707.293H7.88a1 1 0 0 0 .707-.293z"/></svg>',
-            "Eraser",
-            "eraserBtn",
-            () => {
-                state.currentTool = state.currentTool === "eraser" ? null : "eraser";
-                updateToolStyles();
-            }
+        cursorBtn = createButton("cursor", "Cursor (V)", "cursorBtn", () =>
+            setTool(null),
         );
-        undoBtn = createButton("↶", "Undo (Ctrl+Z)", "undoBtn", () => {
+        arrowBtn = createButton("arrow", "Arrow (A)", "arrowBtn", () => setTool("arrow"));
+        lineBtn = createButton("line", "Line (L)", "lineBtn", () => setTool("line"));
+        rectangleBtn = createButton("rectangle", "Rectangle (R)", "rectangleBtn", () =>
+            setTool("rectangle"),
+        );
+        triangleBtn = createButton("triangle", "Triangle (T)", "triangleBtn", () =>
+            setTool("triangle"),
+        );
+        circleBtn = createButton("circle", "Circle (C)", "circleBtn", () =>
+            setTool("circle"),
+        );
+        textBtn = createButton("text", "Text (X)", "textBtn", () => setTool("text"));
+        penBtn = createButton("pen", "Pen (P)", "penBtn", () => setTool("pen"));
+        highlighterBtn = createButton(
+            "highlighter",
+            "Highlighter (H)",
+            "highlighterBtn",
+            () => setTool("highlighter"),
+        );
+        selectBtn = createButton("select", "Select/Move (M)", "selectBtn", () =>
+            setTool("select"),
+        );
+
+        eraserBtn = createButton("clear", "Eraser (E)", "eraserBtn", () =>
+            setTool("eraser"),
+        );
+        eraserBtn.innerHTML =
+            '<svg viewBox="0 0 24 24"><path d="M16.24,3.56L21.19,8.51c0.78,0.78,0.78,2.05,0,2.83l-8.48,8.48c-0.78,0.78-2.05,0.78-2.83,0l-4.95-4.95 c-0.78-0.78-0.78-2.05,0-2.83l8.48-8.48C14.19,2.78,15.46,2.78,16.24,3.56z M7.06,14.88l4.95,4.95L19.07,12.8l-4.95-4.95L7.06,14.88z"/></svg>';
+
+        undoBtn = createButton("undo", "Undo (Ctrl+Z)", "undoBtn", () => {
             app.undo();
             app.renderCanvas();
             updateUndoRedoButtons();
         });
-        redoBtn = createButton("↷", "Redo (Ctrl+Y)", "redoBtn", () => {
+        redoBtn = createButton("redo", "Redo (Ctrl+Y)", "redoBtn", () => {
             app.redo();
             app.renderCanvas();
             updateUndoRedoButtons();
         });
-        const clearBtn = createButton("🗑", "Clear all", "clearBtn", () => {
-            state.shapes = [];
-            state.selectedIndex = -1;
-            app.saveToHistory();
-            app.renderCanvas();
-            app.persist("__arrow_shapes", []);
+
+        const clearBtn = createButton("clear", "Clear all (D)", "clearBtn", () => {
+            app.showConfirm({
+                title: "Clear Canvas?",
+                message: "This will permanently delete all your drawings.",
+                onConfirm: () => {
+                    state.shapes = [];
+                    state.selectedIndex = -1;
+                    app.saveToHistory();
+                    app.renderCanvas();
+                    app.persist("__arrow_shapes", []);
+                },
+            });
         });
-        const saveBtn = createButton("💾", "Save as PNG", "saveBtn", () => {
+        const saveBtn = createButton("save", "Save as PNG (S)", "saveBtn", () => {
             const img = state.canvas.toDataURL("image/png");
             const a = document.createElement("a");
             a.href = img;
-            a.download = "arrows.png";
+            a.download = "drawing.png";
             a.click();
         });
+
         const screenShotBtn = createButton(
-            "⎙",
-            "Take a Screen Shot",
+            "screenshot",
+            "Take Screenshot",
             "screenShot",
             () => {
                 if (state.loadingNotification) return;
@@ -260,18 +332,13 @@
                 try {
                     chrome.runtime.sendMessage({ action: "capture" }, (r) => {
                         if (chrome.runtime.lastError) {
-                            console.log(
-                                "Extension API failed, using fallback.",
-                                chrome.runtime.lastError.message
-                            );
                             app.captureWithGetDisplayMedia();
                         }
                     });
                 } catch (e) {
-                    console.log("Extension API not available, using fallback.", e);
                     app.captureWithGetDisplayMedia();
                 }
-            }
+            },
         );
 
         const colorInput = document.createElement("input");
@@ -279,10 +346,8 @@
         colorInput.className = "colorInput";
         colorInput.title = "Color";
         colorInput.value = state.color;
-        colorInput.addEventListener("change", (e) => {
+        colorInput.addEventListener("input", (e) => {
             state.color = e.target.value;
-        });
-        colorInput.addEventListener("input", () => {
             app.persist("__arrow_controls", {
                 color: state.color,
                 lineWidth: state.lineWidth,
@@ -347,9 +412,6 @@
                 }
             },
         });
-        const tools = document.createElement("div");
-        tools.id = "tools";
-        state.tools = tools;
 
         tools.append(
             grabArea,
@@ -358,6 +420,7 @@
             lineWidthContainer,
             opacityContainer,
             penBtn,
+            highlighterBtn,
             lineBtn,
             arrowBtn,
             circleBtn,
@@ -370,7 +433,7 @@
             undoBtn,
             redoBtn,
             saveBtn,
-            screenShotBtn
+            screenShotBtn,
         );
         overlay.append(tools);
         document.body.append(overlay);
@@ -378,6 +441,7 @@
         updateToolStyles();
         updateUndoRedoButtons();
         app.updateUndoRedoButtons = updateUndoRedoButtons;
+        app.updateToolStyles = updateToolStyles;
 
         return { tools, colorInput, lineWidthSlider, opacitySlider };
     };

@@ -1,57 +1,61 @@
-# Shapes drawer
+# 🎨 Shapes Drawer (Premium v2.0)
 
-Draw shapes on any webpage with this browser extension.
+A modern, high-performance browser extension that turns any webpage into a collaborative canvas. Features a premium glassmorphic UI, smooth drawing physics, and a full suite of professional annotation tools.
 
-## Features
+![Extension Preview](icons/icon_128x128.png)
 
--   **Drawing Tools**:
-    -   Pen for free-form drawing
-    -   Lines
-    -   Arrows
-    -   Circles
-    -   Rectangles
-    -   Triangles
-    -   Text
--   **Editing Tools**:
-    -   Select and move shapes
-    -   Eraser
-    -   Undo (Ctrl+Z) and Redo (Ctrl+Y)
-    -   Clear all drawings from the page
--   **Customization**:
-    -   Choose the color of your shapes
-    -   Adjust the line width
-    -   Set the opacity of shapes
--   **Actions**:
-    -   Save your drawing as a PNG file
-    -   Take a screenshot of the current page
+## ✨ Features
 
-## How to Use
+- **💎 Premium UI**: Beautiful glassmorphic toolbar with smooth animations and intuitive controls.
+- **🖊️ Precision Tools**:
+    - **Pen**: Smooth, quadratic-curve freehand drawing.
+    - **Highlighter**: Broad, translucent strokes that render behind other shapes.
+    - **Shapes**: Lines, Arrows, Circles, Rectangles, and Triangles.
+    - **Text**: Modern, on-page text annotation.
+- **🛠️ Advanced Editing**:
+    - **Select/Move**: Intuitively reposition and rotate any drawn shape.
+    - **Eraser**: Targeted removal of specific shapes with a custom cursor.
+    - **Undo/Redo**: Full history support (`Ctrl+Z` / `Ctrl+Y`).
+- **📥 Export & Capture**:
+    - **Save as PNG**: Export your canvas drawings directly.
+    - **Screenshot**: Capture the entire page with your annotations.
+- **🚀 Performance**: Optimized with `requestAnimationFrame` for stutter-free dragging and drawing.
 
-1.  **Installation**:
-    -   Clone or download this repository.
-    -   Open Chrome and navigate to `chrome://extensions`.
-    -   Enable "Developer mode".
-    -   Click on "Load unpacked" and select the directory where you cloned/downloaded the repository.
-2.  **Usage**:
-    -   Click the extension icon in the browser toolbar to activate the drawing tools on the current page.
-    -   A toolbar will appear with all the available tools. You can drag the toolbar to move it around.
-    -   Select a tool and start drawing on the page.
-    -   Use the editing tools to modify your drawings.
-    -   Your drawings are saved as you make them, and will be restored if you reload the page.
-    -   Click the extension icon again to deactivate the drawing tools.
+## ⌨️ Keyboard Shortcuts
 
-## File Structure
+Speed up your workflow with industry-standard hotkeys:
 
--   `manifest.json`: The manifest file for the Chrome extension.
--   `index.html`: The main HTML file that contains the canvas.
--   `background.js`: The service worker for the extension.
--   `src/`: This directory contains the main JavaScript files for the application.
-    -   `main.js`: Initializes the application and ties everything together.
-    -   `ui.js`: Creates the toolbar and UI components.
-    -   `canvas.js`: Handles the drawing on the canvas.
-    -   `events.js`: Manages mouse and keyboard events.
-    -   `state.js`: Contains the application's state.
-    -   `screenshot.js`: Logic for taking screenshots.
--   `icons/`: Contains the icons for the extension.
--   `arrows.css`: Contains the styling for the application.
--   `arrows.js`: Contains logic for drawing arrows.
+| Key   | Action           | Key                | Action            |
+| :---- | :--------------- | :----------------- | :---------------- |
+| **V** | Cursor (Neutral) | **E**              | Eraser            |
+| **P** | Pen Tool         | **M**              | Select/Move       |
+| **H** | Highlighter      | **D**              | Clear All         |
+| **A** | Arrow            | **S** / **Ctrl+S** | Save as PNG       |
+| **L** | Line             | **Ctrl + Z**       | Undo              |
+| **R** | Rectangle        | **Ctrl + Y**       | Redo              |
+| **C** | Circle           | **Delete**         | Remove Selected   |
+| **T** | Triangle         | **Esc**            | Cancel / Deselect |
+| **X** | Text             |                    |                   |
+
+## 🚀 Installation
+
+1.  Download or clone the repository.
+2.  Open Chrome and navigate to `chrome://extensions`.
+3.  Enable **Developer mode** (top right).
+4.  Click **Load unpacked** and select the root directory of this project.
+
+## 📂 Project Structure
+
+- `manifest.json`: Extension configuration and permissions.
+- `src/`: Modular core logic.
+    - `state.js`: Centralized application state.
+    - `canvas.js`: Core rendering engine & two-pass highlighter logic.
+    - `ui.js`: Glassmorphic UI, custom modals, and toolbar management.
+    - `events.js`: Global event handling and keyboard shortcuts.
+    - `screenshot.js`: Page capture and fallbacks.
+    - `styles.css`: Modern design system and animations.
+- `icons/`: Extension assets.
+
+---
+
+_Created with ❤️ for better web annotations._

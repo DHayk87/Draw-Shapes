@@ -23,7 +23,7 @@
     },
     "web_accessible_resources": [
         {
-            "resources": ["arrows.css", "icons/eraser.png"],
+            "resources": ["src/styles.css", "icons/eraser.png"],
             "matches": ["<all_urls>"]
         }
     ]

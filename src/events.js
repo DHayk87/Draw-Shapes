@@ -105,11 +105,16 @@
     }
 
     app.handleMouseDown = (e) => {
+        if (!state.currentTool) return;
+
+        // Don't start drawing if clicking on buttons or sliders
         if (
-            !state.currentTool ||
-            (e.target !== state.overlay && e.target !== state.canvas)
-        )
+            e.target.closest("#tools") ||
+            e.target.closest(".slider-container") ||
+            e.target.closest(".notification-banner")
+        ) {
             return;
+        }
 
         if (state.currentTool === "select") {
             const idx = hitTest(e.clientX, e.clientY);
@@ -174,8 +179,16 @@
                 });
                 document.body.appendChild(input);
                 input.focus();
+                let isCleaningUp = false;
+                const cleanup = () => {
+                    if (isCleaningUp) return;
+                    isCleaningUp = true;
+                    if (input.parentNode) {
+                        input.remove();
+                    }
+                };
+
                 const submit = () => {
-                    if (!input.parentNode) return;
                     const text = input.value.trim();
                     if (text) {
                         state.shapes.push({
@@ -191,12 +204,16 @@
                         app.renderCanvas();
                         app.persist("__arrow_shapes", state.shapes);
                     }
-                    input.remove();
+                    cleanup();
                 };
+
                 input.onkeydown = (ev) => {
                     ev.stopImmediatePropagation();
-                    if (ev.key === "Enter") submit();
-                    else if (ev.key === "Escape") input.remove();
+                    if (ev.key === "Enter") {
+                        submit();
+                    } else if (ev.key === "Escape") {
+                        cleanup();
+                    }
                 };
                 input.onblur = submit;
             }, 0);
@@ -204,13 +221,13 @@
         }
 
         state.isDrawing = true;
-        if (state.currentTool === "pen") {
+        if (state.currentTool === "pen" || state.currentTool === "highlighter") {
             state.currentCord = {
-                type: "pen",
+                type: state.currentTool,
                 points: [{ x: e.clientX, y: e.clientY }],
                 color: state.color,
-                lineWidth: state.lineWidth,
-                opacity: state.opacity,
+                lineWidth: state.currentTool === "highlighter" ? 20 : state.lineWidth,
+                opacity: state.currentTool === "highlighter" ? 0.4 : state.opacity,
             };
         } else {
             state.currentCord = {
@@ -229,14 +246,16 @@
 
     app.handleMouseMove = (e) => {
         if (state.isDrawing && state.currentCord) {
-            if (state.currentTool === "pen") {
+            if (state.currentTool === "pen" || state.currentTool === "highlighter") {
                 state.currentCord.points.push({ x: e.clientX, y: e.clientY });
             } else {
                 state.currentCord.toX = e.clientX;
                 state.currentCord.toY = e.clientY;
             }
-            state.currentCord.lineWidth = state.lineWidth;
-            state.currentCord.opacity = state.opacity;
+            if (state.currentCord.type !== "highlighter") {
+                state.currentCord.lineWidth = state.lineWidth;
+                state.currentCord.opacity = state.opacity;
+            }
             return;
         }
 
@@ -253,7 +272,7 @@
                 if (s.type === "text") {
                     s.x += dx;
                     s.y += dy;
-                } else if (s.type === "pen") {
+                } else if (s.type === "pen" || s.type === "highlighter") {
                     for (const point of s.points) {
                         point.x += dx;
                         point.y += dy;
@@ -280,7 +299,7 @@
 
         if (state.isDrawing && state.currentCord) {
             state.isDrawing = false;
-            if (state.currentTool === "pen") {
+            if (state.currentTool === "pen" || state.currentTool === "highlighter") {
                 if (state.currentCord.points.length > 1) {
                     state.shapes.push({ ...state.currentCord });
                     app.saveToHistory();
@@ -316,12 +335,18 @@
             if (e.key === "z") {
                 e.preventDefault();
                 (e.shiftKey ? app.redo : app.undo)();
+                app.renderCanvas();
+                app.persist("__arrow_shapes", state.shapes);
             } else if (e.key === "y") {
                 e.preventDefault();
                 app.redo();
+                app.renderCanvas();
+                app.persist("__arrow_shapes", state.shapes);
+            } else if (e.key === "s") {
+                e.preventDefault();
+                const saveBtn = document.querySelector(".saveBtn");
+                if (saveBtn) saveBtn.click();
             }
-            app.renderCanvas();
-            app.persist("__arrow_shapes", state.shapes);
         } else if (e.key === "Delete" || e.key === "Backspace") {
             if (state.selectedIndex >= 0) {
                 state.shapes.splice(state.selectedIndex, 1);
@@ -329,6 +354,42 @@
                 app.saveToHistory();
                 app.renderCanvas();
                 app.persist("__arrow_shapes", state.shapes);
+            }
+        } else if (e.key === "Escape") {
+            if (state.isDrawing) {
+                state.isDrawing = false;
+                state.currentCord = null;
+            }
+            state.selectedIndex = -1;
+            state.currentTool = null;
+            app.renderCanvas();
+            if (typeof app.updateToolStyles === "function") app.updateToolStyles();
+        } else if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+            const key = e.key.toLowerCase();
+            const tools = {
+                v: null,
+                a: "arrow",
+                l: "line",
+                c: "circle",
+                r: "rectangle",
+                t: "triangle",
+                x: "text",
+                h: "highlighter",
+                p: "pen",
+                m: "select",
+                e: "eraser",
+                d: "clear",
+            };
+
+            if (key in tools) {
+                if (tools[key] === "clear") {
+                    const clearBtn = document.querySelector(".clearBtn");
+                    if (clearBtn) clearBtn.click();
+                } else {
+                    state.currentTool = tools[key];
+                    if (typeof app.updateToolStyles === "function")
+                        app.updateToolStyles();
+                }
             }
         }
     };

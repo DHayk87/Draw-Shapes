@@ -1,0 +1,357 @@
+:root {
+    --bg-color: rgba(36, 40, 43, 0.85);
+    --text-color: #e0694f;
+    --accent-color: #c885ff;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --hover-color: rgba(255, 255, 255, 0.15);
+    --active-color: rgba(255, 255, 255, 0.25);
+    --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+#__arrow-canvas {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999998;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999999;
+}
+
+#overlay #tools {
+    pointer-events: auto;
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    background: var(--bg-color);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow);
+    align-items: center;
+    width: 110px;
+    transition:
+        opacity 0.3s ease,
+        border-color 0.3s ease,
+        background-color 0.3s ease,
+        box-shadow 0.3s ease;
+    will-change: left, top;
+}
+
+#overlay #tools .grabArea {
+    grid-column: 1 / -1;
+    height: auto;
+    cursor: grab;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 8px;
+}
+
+#overlay #tools .grabHandle {
+    width: 32px;
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    transition: background 0.2s;
+}
+
+#overlay #tools .grabArea:hover .grabHandle {
+    background: var(--accent-color);
+}
+
+#overlay #tools .grabTitle {
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: "Outfit", sans-serif;
+    user-select: none;
+}
+
+#overlay #tools .grabArea:active {
+    cursor: grabbing;
+}
+
+#overlay #tools button,
+#overlay #tools .colorInput {
+    all: unset;
+    box-sizing: border-box;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    color: var(--text-color);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#overlay #tools button:hover,
+#overlay #tools .colorInput:hover {
+    background: var(--hover-color);
+    transform: translateY(-1px);
+}
+
+#overlay #tools button:active {
+    background: var(--active-color);
+    transform: translateY(0);
+}
+
+#overlay #tools button svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.slider-container {
+    position: relative;
+    grid-column: span 2;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 0;
+}
+
+.slider-tooltip {
+    position: absolute;
+    top: -24px;
+    background: var(--accent-color);
+    color: #000;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    font-family: "Outfit", sans-serif;
+    pointer-events: none;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.slider-container:hover .slider-tooltip {
+    opacity: 1;
+}
+
+#overlay #tools input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    outline: none;
+}
+
+#overlay #tools input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--text-color);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s;
+}
+
+#overlay #tools input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    background: var(--accent-color);
+}
+
+.notification-banner {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-color);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 12px 24px;
+    border-radius: 12px;
+    z-index: 10000000;
+    font-family: "Outfit", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: var(--shadow);
+    animation: slide-in-out 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slide-in-out {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
+    15% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+    85% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
+}
+
+.undoBtn:disabled,
+.redoBtn:disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+}
+
+.colorInput::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.colorInput::-webkit-color-swatch {
+    border: none;
+    border-radius: 8px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000001;
+    animation: fade-in 0.2s ease-out;
+}
+
+.modal-content {
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    padding: 24px;
+    border-radius: 20px;
+    width: 320px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    animation: scale-up 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-overlay.closing {
+    animation: fade-out 0.2s ease-in forwards;
+}
+
+.modal-overlay.closing .modal-content {
+    animation: scale-down 0.2s ease-in forwards;
+}
+
+.modal-content h3 {
+    margin: 0 0 12px 0;
+    font-family: "Outfit", sans-serif;
+    color: var(--text-color);
+}
+
+.modal-content p {
+    margin: 0 0 24px 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.modal-actions button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    font-family: "Outfit", sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.modal-btn-cancel {
+    background: var(--hover-color);
+    color: var(--text-color);
+}
+
+.modal-btn-cancel:hover {
+    background: var(--active-color);
+}
+
+.modal-btn-confirm {
+    background: #ff4757;
+    color: white;
+}
+
+.modal-btn-confirm:hover {
+    background: #ff6b81;
+    transform: translateY(-1px);
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+@keyframes fade-out {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+@keyframes scale-up {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+@keyframes scale-down {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}

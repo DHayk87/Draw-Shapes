@@ -4,17 +4,26 @@
 
     function hexToRgba(hex, alpha) {
         if (!/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
-            return hex; 
+            return hex;
         }
-        let c = hex.substring(1).split('');
+        let c = hex.substring(1).split("");
         if (c.length === 3) {
             c = [c[0], c[0], c[1], c[1], c[2], c[2]];
         }
-        c = '0x' + c.join('');
-        return `rgba(${(c>>16)&255}, ${(c>>8)&255}, ${c&255}, ${alpha})`;
+        c = "0x" + c.join("");
+        return `rgba(${(c >> 16) & 255}, ${(c >> 8) & 255}, ${c & 255}, ${alpha})`;
     }
 
-    function drawArrow({ fromX, fromY, toX, toY, color, lineWidth = state.lineWidth, rotation = 0, opacity = state.opacity }) {
+    function drawArrow({
+        fromX,
+        fromY,
+        toX,
+        toY,
+        color,
+        lineWidth = state.lineWidth,
+        rotation = 0,
+        opacity = state.opacity,
+    }) {
         const ctx = state.ctx;
         const rgbaColor = hexToRgba(color, opacity);
         ctx.save();
@@ -67,7 +76,15 @@
         ctx.restore();
     }
 
-    function drawCircle({ fromX, fromY, toX, toY, color, lineWidth = state.lineWidth, opacity = state.opacity }) {
+    function drawCircle({
+        fromX,
+        fromY,
+        toX,
+        toY,
+        color,
+        lineWidth = state.lineWidth,
+        opacity = state.opacity,
+    }) {
         const ctx = state.ctx;
         const rgbaColor = hexToRgba(color, opacity);
         const centerX = (fromX + toX) / 2;
@@ -82,7 +99,16 @@
         ctx.stroke();
     }
 
-    function drawRectangle({ fromX, fromY, toX, toY, color, lineWidth = state.lineWidth, rotation = 0, opacity = state.opacity }) {
+    function drawRectangle({
+        fromX,
+        fromY,
+        toX,
+        toY,
+        color,
+        lineWidth = state.lineWidth,
+        rotation = 0,
+        opacity = state.opacity,
+    }) {
         const ctx = state.ctx;
         const rgbaColor = hexToRgba(color, opacity);
         ctx.save();
@@ -104,7 +130,16 @@
         ctx.restore();
     }
 
-    function drawTriangle({ fromX, fromY, toX, toY, color, lineWidth = state.lineWidth, rotation = 0, opacity = state.opacity }) {
+    function drawTriangle({
+        fromX,
+        fromY,
+        toX,
+        toY,
+        color,
+        lineWidth = state.lineWidth,
+        rotation = 0,
+        opacity = state.opacity,
+    }) {
         const ctx = state.ctx;
         const rgbaColor = hexToRgba(color, opacity);
         ctx.save();
@@ -122,13 +157,13 @@
         const y2 = fromY;
         const x3 = toX;
         const y3 = toY;
-        
+
         ctx.beginPath();
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.lineTo(x3, y3);
         ctx.closePath();
-        
+
         ctx.fillStyle = rgbaColor;
         ctx.strokeStyle = "white";
         ctx.lineWidth = Math.max(1, lineWidth);
@@ -137,7 +172,15 @@
         ctx.restore();
     }
 
-    function drawLine({ fromX, fromY, toX, toY, color, lineWidth = state.lineWidth, opacity = state.opacity }) {
+    function drawLine({
+        fromX,
+        fromY,
+        toX,
+        toY,
+        color,
+        lineWidth = state.lineWidth,
+        opacity = state.opacity,
+    }) {
         const ctx = state.ctx;
         const rgbaColor = hexToRgba(color, opacity);
         ctx.beginPath();
@@ -154,7 +197,13 @@
         ctx.stroke();
     }
 
-    function drawPen({ points, color, lineWidth = state.lineWidth, opacity = state.opacity }) {
+    function drawPen({
+        points,
+        color,
+        lineWidth = state.lineWidth,
+        opacity = state.opacity,
+    }) {
+        if (points.length < 2) return;
         const ctx = state.ctx;
         const rgbaColor = hexToRgba(color, opacity);
         ctx.strokeStyle = rgbaColor;
@@ -163,16 +212,37 @@
         ctx.lineJoin = "round";
 
         ctx.beginPath();
-        if (points.length > 0) {
-            ctx.moveTo(points[0].x, points[0].y);
+        ctx.moveTo(points[0].x, points[0].y);
+
+        for (let i = 1; i < points.length - 2; i++) {
+            const xc = (points[i].x + points[i + 1].x) / 2;
+            const yc = (points[i].y + points[i + 1].y) / 2;
+            ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
         }
-        for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].x, points[i].y);
+
+        // For the last 2 points
+        if (points.length > 2) {
+            ctx.quadraticCurveTo(
+                points[points.length - 2].x,
+                points[points.length - 2].y,
+                points[points.length - 1].x,
+                points[points.length - 1].y,
+            );
+        } else {
+            ctx.lineTo(points[1].x, points[1].y);
         }
         ctx.stroke();
     }
 
-    function drawText({ x, y, color, text, lineWidth = state.lineWidth, rotation = 0, opacity = state.opacity }) {
+    function drawText({
+        x,
+        y,
+        color,
+        text,
+        lineWidth = state.lineWidth,
+        rotation = 0,
+        opacity = state.opacity,
+    }) {
         const ctx = state.ctx;
         const rgbaColor = hexToRgba(color, opacity);
         ctx.save();
@@ -207,7 +277,12 @@
         }
         ctx.strokeRect(bbox.x, bbox.y, bbox.w, bbox.h);
 
-        if (shape.type === "arrow" || shape.type === "rectangle" || shape.type === "text" || shape.type === "triangle") {
+        if (
+            shape.type === "arrow" ||
+            shape.type === "rectangle" ||
+            shape.type === "text" ||
+            shape.type === "triangle"
+        ) {
             const centerX = bbox.x + bbox.w / 2;
             const handleY = bbox.y - 20;
             const handleX = centerX;
@@ -235,7 +310,13 @@
     }
 
     app.getShapeBBox = function (shape) {
-        if (shape.type === "rectangle" || shape.type === "circle" || shape.type === "arrow" || shape.type === "line" || shape.type === "triangle") {
+        if (
+            shape.type === "rectangle" ||
+            shape.type === "circle" ||
+            shape.type === "arrow" ||
+            shape.type === "line" ||
+            shape.type === "triangle"
+        ) {
             const x = Math.min(shape.fromX, shape.toX);
             const y = Math.min(shape.fromY, shape.toY);
             const w = Math.abs(shape.toX - shape.fromX);
@@ -244,8 +325,10 @@
         }
         if (shape.type === "pen") {
             if (shape.points.length === 0) return null;
-            let minX = shape.points[0].x, maxX = shape.points[0].x;
-            let minY = shape.points[0].y, maxY = shape.points[0].y;
+            let minX = shape.points[0].x,
+                maxX = shape.points[0].x;
+            let minY = shape.points[0].y,
+                maxY = shape.points[0].y;
             for (let i = 1; i < shape.points.length; i++) {
                 minX = Math.min(minX, shape.points[i].x);
                 maxX = Math.max(maxX, shape.points[i].x);
@@ -267,18 +350,29 @@
         const ctx = state.ctx;
         const canvas = state.canvas;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        state.shapes.forEach((cord, idx) => {
+
+        const drawShape = (cord, idx) => {
             if (cord.type === "arrow") drawArrow(cord);
             else if (cord.type === "line") drawLine(cord);
             else if (cord.type === "circle") drawCircle(cord);
             else if (cord.type === "rectangle") drawRectangle(cord);
             else if (cord.type === "triangle") drawTriangle(cord);
-            else if (cord.type === "pen") drawPen(cord);
+            else if (cord.type === "pen" || cord.type === "highlighter") drawPen(cord);
             else if (cord.type === "text") drawText(cord);
             if (idx === state.selectedIndex) drawSelectionOutline(cord);
+        };
+
+        // Pass 1: Draw Highlighters
+        state.shapes.forEach((s, i) => {
+            if (s.type === "highlighter") drawShape(s, i);
+        });
+
+        // Pass 2: Draw everything else
+        state.shapes.forEach((s, i) => {
+            if (s.type !== "highlighter") drawShape(s, i);
         });
     };
-    
+
     app.drawCurrentShape = function () {
         if (!state.currentCord) return;
         if (state.currentTool === "arrow") drawArrow(state.currentCord);
@@ -286,6 +380,7 @@
         else if (state.currentTool === "circle") drawCircle(state.currentCord);
         else if (state.currentTool === "rectangle") drawRectangle(state.currentCord);
         else if (state.currentTool === "triangle") drawTriangle(state.currentCord);
-        else if (state.currentTool === "pen") drawPen(state.currentCord);
+        else if (state.currentTool === "pen" || state.currentTool === "highlighter")
+            drawPen(state.currentCord);
     };
 })();

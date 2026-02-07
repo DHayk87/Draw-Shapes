@@ -1,7 +1,7 @@
 chrome.action.onClicked.addListener((tab) => {
     chrome.scripting.insertCSS({
         target: { tabId: tab.id },
-        files: ["arrows.css"],
+        files: ["src/styles.css"],
     });
 
     chrome.scripting.executeScript({
@@ -27,7 +27,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     action: "imageCaptured",
                     imageUri: imageUri,
                 });
-            }
+            },
         );
         return true;
     }
