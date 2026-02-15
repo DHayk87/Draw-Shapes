@@ -18,6 +18,7 @@ window.drawingApp = {
         pixelRatio: 1,
         lineWidth: 2,
         opacity: 1,
+        curveStage: 0,
         destroy: null,
     },
 
@@ -56,6 +57,45 @@ window.drawingApp = {
         if (window.drawingApp.updateUndoRedoButtons) {
             window.drawingApp.updateUndoRedoButtons();
         }
+    },
+
+    moveShapeToTop: function () {
+        const { state } = window.drawingApp;
+        if (state.selectedIndex < 0) return;
+        const shapes = state.shapes;
+        const index = state.selectedIndex;
+        const [shape] = shapes.splice(index, 1);
+        shapes.push(shape);
+        state.selectedIndex = shapes.length - 1;
+    },
+
+    moveShapeToBottom: function () {
+        const { state } = window.drawingApp;
+        if (state.selectedIndex < 0) return;
+        const shapes = state.shapes;
+        const index = state.selectedIndex;
+        const [shape] = shapes.splice(index, 1);
+        shapes.unshift(shape);
+        state.selectedIndex = 0;
+    },
+
+    moveShapeUp: function () {
+        const { state } = window.drawingApp;
+        if (state.selectedIndex < 0 || state.selectedIndex >= state.shapes.length - 1)
+            return;
+        const shapes = state.shapes;
+        const index = state.selectedIndex;
+        [shapes[index], shapes[index + 1]] = [shapes[index + 1], shapes[index]];
+        state.selectedIndex = index + 1;
+    },
+
+    moveShapeDown: function () {
+        const { state } = window.drawingApp;
+        if (state.selectedIndex <= 0) return;
+        const shapes = state.shapes;
+        const index = state.selectedIndex;
+        [shapes[index], shapes[index - 1]] = [shapes[index - 1], shapes[index]];
+        state.selectedIndex = index - 1;
     },
 
     persist: function (key, value) {

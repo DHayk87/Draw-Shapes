@@ -13,7 +13,11 @@
         undoBtn,
         redoBtn,
         penBtn,
-        highlighterBtn;
+        highlighterBtn,
+        curveBtn,
+        polygonBtn,
+        forwardBtn,
+        backwardBtn;
 
     function updateToolStyles() {
         const setBg = (el, active) => {
@@ -35,6 +39,22 @@
         setBg(selectBtn, state.currentTool === "select");
         setBg(eraserBtn, state.currentTool === "eraser");
         setBg(penBtn, state.currentTool === "pen");
+        setBg(curveBtn, state.currentTool === "curve");
+        setBg(polygonBtn, state.currentTool === "polygon");
+
+        const shouldShowLayering =
+            state.currentTool === "select" && state.selectedIndex >= 0;
+
+        if (forwardBtn) {
+            forwardBtn.style.display = shouldShowLayering ? "flex" : "none";
+            forwardBtn.disabled = state.selectedIndex >= state.shapes.length - 1;
+            forwardBtn.style.opacity = forwardBtn.disabled ? "0.3" : "1";
+        }
+        if (backwardBtn) {
+            backwardBtn.style.display = shouldShowLayering ? "flex" : "none";
+            backwardBtn.disabled = state.selectedIndex <= 0;
+            backwardBtn.style.opacity = backwardBtn.disabled ? "0.3" : "1";
+        }
 
         if (state.overlay) {
             state.overlay.style.pointerEvents = state.currentTool ? "auto" : "none";
@@ -189,6 +209,9 @@
             '<svg viewBox="0 0 24 24"><path d="M4,6v13h16V6H4z M18,17H6V8h12V17z"/></svg>',
         triangle:
             '<svg viewBox="0 0 24 24"><path d="M12,2L1,21h22L12,2z M12,6l7.53,13H4.47L12,6z"/></svg>',
+        curve: '<svg viewBox="0 0 24 24"><path d="M4.17 17.5a1 1 0 0 1-.7-1.71 11 11 0 0 1 15.06 0 1 1 0 0 1-.69 1.71 11 11 0 0 0-13.67 0zM12 2a1 1 0 1 1-1 1 1 1 0 0 1 1-1z"/></svg>',
+        polygon:
+            '<svg viewBox="0 0 24 24"><path d="M22,13.52V19a2,2,0,0,1-2,2H4a2,2,0,0,1-2-2V5A2,2,0,0,1,4,3H9.48a1,1,0,0,1,.71.29l2,2A1,1,0,0,0,12.9,5.58L16.32,9a1,1,0,0,0,.71.29H20a2,2,0,0,1,2,2s0,0.48,0,0.48a1,1,0,0,1,1,1v0.74A1,1,0,0,1,22,13.52Z"/></svg>',
         text: '<svg viewBox="0 0 24 24"><path d="M5,4v3h5.5v12h3V7H19V4H5z"/></svg>',
         highlighter:
             '<svg viewBox="0 0 24 24"><path d="M20.71,5.63l-2.34-2.34c-0.39-0.39-1.02-0.39-1.41,0l-3.12,3.12L12,5.12c-0.78-0.78-2.05-0.78-2.83,0l-7.07,7.07 c-0.78,0.78-0.78,2.05,0,2.83l2.12,2.12l-1.41,1.41l1.41,1.41l1.41-1.41l2.12,2.12c0.78,0.78,2.05,0.78,2.83,0l7.07-7.07 c0.78-0.78,0.78-2.05,0-2.83l-1.29-1.29l3.12-3.12C21.1,6.65,21.1,6.02,20.71,5.63z M11.29,17.88L6.34,12.93l2.12-2.12l4.95,4.95 L11.29,17.88z"/></svg>',
@@ -200,6 +223,13 @@
         save: '<svg viewBox="0 0 24 24"><path d="M17,3H5C3.89,3,3,3.9,3,5v14c0,1.1,0.89,2,2,2h14c1.1,0,2-0.9,2-2V7L17,3z M12,19c-1.66,0-3-1.34-3-3s1.34-3,3-3s3,1.34,3,3 S13.66,19,12,19z M15,9H5V5h10V9z"/></svg>',
         screenshot:
             '<svg viewBox="0 0 24 24"><path d="M21,19V5c0-1.1-0.9-2-2-2H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14C20.1,21,21,20.1,21,19z M8.5,13.5l2.5,3.01L14.5,12l4.5,6H5 L8.5,13.5z"/></svg>',
+        toFront:
+            '<svg viewBox="0 0 24 24"><path d="M19 7h-8L11 3h8v4zm0 10h-8l0-4h8v4zM7 7H3V3h4v4zm0 10l-4 0v-4h4v4zM3 11h18v2H3v-2z" fill="currentColor"/></svg>',
+        toBack: '<svg viewBox="0 0 24 24"><path d="M11 7h8L19 3h-8v4zm0 10h8l0-4h-8v4zM3 7h4V3H3v4zm0 10l4 0v-4H3v4zM3 11h18v2H3v-2z" opacity=".3" fill="currentColor"/></svg>',
+        forward:
+            '<svg viewBox="0 0 24 24"><path d="M5 9l1.41 1.41L11 5.83V22h2V5.83l4.59 4.59L19 9l-7-7-7 7z"/></svg>',
+        backward:
+            '<svg viewBox="0 0 24 24"><path d="M19 15l-1.41-1.41L13 18.17V2h-2v16.17l-4.59-4.59L5 15l7 7 7-7z"/></svg>',
     };
 
     app.createToolbar = function () {
@@ -232,10 +262,18 @@
             if (!isDragging) return;
             if (rafId) return;
             rafId = requestAnimationFrame(() => {
+                const rect = tools.getBoundingClientRect();
+                let left = e.clientX - offsetX;
+                let top = e.clientY - offsetY;
+
+                // Stay within viewport
+                left = Math.max(0, Math.min(left, window.innerWidth - rect.width));
+                top = Math.max(0, Math.min(top, window.innerHeight - rect.height));
+
                 Object.assign(tools.style, {
                     position: "absolute",
-                    left: `${e.clientX - offsetX}px`,
-                    top: `${e.clientY - offsetY}px`,
+                    left: `${left}px`,
+                    top: `${top}px`,
                     right: "auto",
                 });
                 rafId = null;
@@ -273,6 +311,22 @@
             setTool("circle"),
         );
         textBtn = createButton("text", "Text (X)", "textBtn", () => setTool("text"));
+        curveBtn = createButton("curve", "Curve (U)", "curveBtn", () => setTool("curve"));
+        polygonBtn = createButton("polygon", "Polygon (N)", "polygonBtn", () =>
+            setTool("polygon"),
+        );
+        forwardBtn = createButton("forward", "Bring Forward (])", "forwardBtn", () => {
+            app.moveShapeUp();
+            app.saveToHistory();
+            app.renderCanvas();
+            updateToolStyles();
+        });
+        backwardBtn = createButton("backward", "Send Backward ([)", "backwardBtn", () => {
+            app.moveShapeDown();
+            app.saveToHistory();
+            app.renderCanvas();
+            updateToolStyles();
+        });
         penBtn = createButton("pen", "Pen (P)", "penBtn", () => setTool("pen"));
         highlighterBtn = createButton(
             "highlighter",
@@ -427,6 +481,10 @@
             rectangleBtn,
             triangleBtn,
             textBtn,
+            curveBtn,
+            polygonBtn,
+            forwardBtn,
+            backwardBtn,
             selectBtn,
             eraserBtn,
             clearBtn,

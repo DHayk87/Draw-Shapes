@@ -197,6 +197,33 @@
         ctx.stroke();
     }
 
+    function drawCurve({
+        fromX,
+        fromY,
+        controlX,
+        controlY,
+        toX,
+        toY,
+        color,
+        lineWidth = state.lineWidth,
+        opacity = state.opacity,
+    }) {
+        const ctx = state.ctx;
+        const rgbaColor = hexToRgba(color, opacity);
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.quadraticCurveTo(controlX, controlY, toX, toY);
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = Math.max(1, lineWidth) + 2;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.quadraticCurveTo(controlX, controlY, toX, toY);
+        ctx.strokeStyle = rgbaColor;
+        ctx.lineWidth = Math.max(1, lineWidth);
+        ctx.stroke();
+    }
+
     function drawPen({
         points,
         color,
@@ -232,6 +259,37 @@
             ctx.lineTo(points[1].x, points[1].y);
         }
         ctx.stroke();
+    }
+
+    function drawPolygon({
+        points,
+        color,
+        lineWidth = state.lineWidth,
+        opacity = state.opacity,
+        isClosed = false,
+    }) {
+        if (points.length < 1) return;
+        const ctx = state.ctx;
+        const rgbaColor = hexToRgba(color, opacity);
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+        if (isClosed) {
+            ctx.closePath();
+            ctx.fillStyle = rgbaColor;
+            ctx.fill();
+        }
+        ctx.strokeStyle = isClosed ? "white" : rgbaColor;
+        ctx.lineWidth = Math.max(1, lineWidth);
+        ctx.stroke();
+
+        if (isClosed) {
+            ctx.strokeStyle = rgbaColor;
+            ctx.lineWidth = Math.max(1, lineWidth);
+            ctx.stroke();
+        }
     }
 
     function drawText({
@@ -323,7 +381,28 @@
             const h = Math.abs(shape.toY - shape.fromY);
             return { x, y, w, h };
         }
+        if (shape.type === "curve") {
+            const minX = Math.min(shape.fromX, shape.toX, shape.controlX);
+            const maxX = Math.max(shape.fromX, shape.toX, shape.controlX);
+            const minY = Math.min(shape.fromY, shape.toY, shape.controlY);
+            const maxY = Math.max(shape.fromY, shape.toY, shape.controlY);
+            return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+        }
         if (shape.type === "pen") {
+            if (shape.points.length === 0) return null;
+            let minX = shape.points[0].x,
+                maxX = shape.points[0].x;
+            let minY = shape.points[0].y,
+                maxY = shape.points[0].y;
+            for (let i = 1; i < shape.points.length; i++) {
+                minX = Math.min(minX, shape.points[i].x);
+                maxX = Math.max(maxX, shape.points[i].x);
+                minY = Math.min(minY, shape.points[i].y);
+                maxY = Math.max(maxY, shape.points[i].y);
+            }
+            return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+        }
+        if (shape.type === "polygon") {
             if (shape.points.length === 0) return null;
             let minX = shape.points[0].x,
                 maxX = shape.points[0].x;
@@ -357,6 +436,8 @@
             else if (cord.type === "circle") drawCircle(cord);
             else if (cord.type === "rectangle") drawRectangle(cord);
             else if (cord.type === "triangle") drawTriangle(cord);
+            else if (cord.type === "curve") drawCurve(cord);
+            else if (cord.type === "polygon") drawPolygon(cord);
             else if (cord.type === "pen" || cord.type === "highlighter") drawPen(cord);
             else if (cord.type === "text") drawText(cord);
             if (idx === state.selectedIndex) drawSelectionOutline(cord);
@@ -380,6 +461,8 @@
         else if (state.currentTool === "circle") drawCircle(state.currentCord);
         else if (state.currentTool === "rectangle") drawRectangle(state.currentCord);
         else if (state.currentTool === "triangle") drawTriangle(state.currentCord);
+        else if (state.currentTool === "curve") drawCurve(state.currentCord);
+        else if (state.currentTool === "polygon") drawPolygon(state.currentCord);
         else if (state.currentTool === "pen" || state.currentTool === "highlighter")
             drawPen(state.currentCord);
     };

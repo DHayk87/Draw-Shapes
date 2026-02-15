@@ -20,7 +20,8 @@
     const resizeCanvas = () => {
         const ratio = Math.max(1, window.devicePixelRatio || 1);
         state.pixelRatio = ratio;
-        const w = window.innerWidth, h = window.innerHeight;
+        const w = window.innerWidth,
+            h = window.innerHeight;
         canvas.width = Math.floor(w * ratio);
         canvas.height = Math.floor(h * ratio);
         canvas.style.width = `${w}px`;
@@ -34,17 +35,26 @@
 
     const restoredShapes = app.restore("__arrow_shapes", []);
     state.shapes = Array.isArray(restoredShapes) ? restoredShapes : [];
-    const restoredControls = app.restore("__arrow_controls", { color: state.color, lineWidth: state.lineWidth, opacity: state.opacity });
+    const restoredControls = app.restore("__arrow_controls", {
+        color: state.color,
+        lineWidth: state.lineWidth,
+        opacity: state.opacity,
+    });
     state.color = restoredControls.color ?? state.color;
     state.lineWidth = restoredControls.lineWidth ?? state.lineWidth;
     state.opacity = restoredControls.opacity ?? state.opacity;
     colorInput.value = state.color;
     lineWidthSlider.value = state.lineWidth;
     opacitySlider.value = state.opacity;
-    
+
     const restoredPos = app.restore("__arrow_toolbar_pos");
     if (restoredPos && restoredPos.left && restoredPos.top) {
-        Object.assign(tools.style, { position: "absolute", left: restoredPos.left, top: restoredPos.top, right: "auto" });
+        Object.assign(tools.style, {
+            position: "absolute",
+            left: restoredPos.left,
+            top: restoredPos.top,
+            right: "auto",
+        });
     }
 
     resizeCanvas();
@@ -77,19 +87,23 @@
             window.removeEventListener("mousedown", app.handleMouseDown);
             window.removeEventListener("mousemove", app.handleMouseMove);
             window.removeEventListener("mouseup", app.handleMouseUp);
+            window.removeEventListener("dblclick", app.handleDblClick);
             window.removeEventListener("keydown", app.keydownHandler);
             if (chrome.runtime?.id) {
                 chrome.runtime.onMessage.removeListener(messageListener);
             }
             delete window.drawingAppInstance;
-        } catch (e) { console.error("Error during cleanup:", e); }
+        } catch (e) {
+            console.error("Error during cleanup:", e);
+        }
     };
-    
+
     state.destroy = destroy;
 
     window.addEventListener("mousedown", app.handleMouseDown);
     window.addEventListener("mousemove", app.handleMouseMove);
     window.addEventListener("mouseup", app.handleMouseUp);
+    window.addEventListener("dblclick", app.handleDblClick);
     window.addEventListener("keydown", app.keydownHandler);
     chrome.runtime.onMessage.addListener(messageListener);
 

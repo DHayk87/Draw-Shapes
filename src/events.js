@@ -90,15 +90,12 @@
                 s.type === "circle" ||
                 s.type === "text" ||
                 s.type === "pen" ||
-                s.type === "triangle"
+                s.type === "triangle" ||
+                s.type === "curve"
             ) {
                 if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return i;
             } else if (s.type === "arrow" || s.type === "line") {
-                if (
-                    distanceToSegment(x, y, s.fromX, s.fromY, s.toX, s.toY) <=
-                    Math.max(6, (s.lineWidth || state.lineWidth) + 4)
-                )
-                    return i;
+                return i;
             }
         }
         return -1;
@@ -141,6 +138,7 @@
             }
             if (state.dragMode) startLoop();
             else app.renderCanvas();
+            if (typeof app.updateToolStyles === "function") app.updateToolStyles();
             return;
         }
 
@@ -220,26 +218,84 @@
             return;
         }
 
-        state.isDrawing = true;
-        if (state.currentTool === "pen" || state.currentTool === "highlighter") {
+        if (state.currentTool === "curve") {
+            if (state.curveStage === 1) {
+                // Finish stage 2
+                state.isDrawing = false;
+                state.curveStage = 0;
+                state.shapes.push({ ...state.currentCord });
+                state.currentCord = null;
+                app.saveToHistory();
+                app.renderCanvas();
+                app.persist("__arrow_shapes", state.shapes);
+                stopLoop();
+                return;
+            }
+            state.isDrawing = true;
+            state.curveStage = 0; // Stage 0: defining Start/End
             state.currentCord = {
-                type: state.currentTool,
-                points: [{ x: e.clientX, y: e.clientY }],
-                color: state.color,
-                lineWidth: state.currentTool === "highlighter" ? 20 : state.lineWidth,
-                opacity: state.currentTool === "highlighter" ? 0.4 : state.opacity,
-            };
-        } else {
-            state.currentCord = {
+                type: "curve",
                 fromX: e.clientX,
                 fromY: e.clientY,
                 toX: e.clientX,
                 toY: e.clientY,
-                type: state.currentTool,
+                controlX: e.clientX,
+                controlY: e.clientY,
                 color: state.color,
                 lineWidth: state.lineWidth,
                 opacity: state.opacity,
             };
+        } else if (state.currentTool === "polygon") {
+            const x = e.clientX;
+            const y = e.clientY;
+            if (state.isDrawing && state.currentCord?.type === "polygon") {
+                // Check if clicking near the first point to close
+                const p0 = state.currentCord.points[0];
+                const distSq = (x - p0.x) ** 2 + (y - p0.y) ** 2;
+                if (distSq < 100) {
+                    // 10px radius
+                    app.handleDblClick(e);
+                    return;
+                }
+                // Otherwise add a point
+                state.currentCord.points[state.currentCord.points.length - 1] = { x, y };
+                state.currentCord.points.push({ x, y }); // New preview point
+                return;
+            }
+            state.isDrawing = true;
+            state.currentCord = {
+                type: "polygon",
+                points: [
+                    { x, y },
+                    { x, y },
+                ], // Initial point and preview point
+                color: state.color,
+                lineWidth: state.lineWidth,
+                opacity: state.opacity,
+                isClosed: false,
+            };
+        } else {
+            state.isDrawing = true;
+            if (state.currentTool === "pen" || state.currentTool === "highlighter") {
+                state.currentCord = {
+                    type: state.currentTool,
+                    points: [{ x: e.clientX, y: e.clientY }],
+                    color: state.color,
+                    lineWidth: state.currentTool === "highlighter" ? 20 : state.lineWidth,
+                    opacity: state.currentTool === "highlighter" ? 0.4 : state.opacity,
+                };
+            } else {
+                state.currentCord = {
+                    fromX: e.clientX,
+                    fromY: e.clientY,
+                    toX: e.clientX,
+                    toY: e.clientY,
+                    type: state.currentTool,
+                    color: state.color,
+                    lineWidth: state.lineWidth,
+                    opacity: state.opacity,
+                };
+            }
         }
         startLoop();
     };
@@ -248,6 +304,24 @@
         if (state.isDrawing && state.currentCord) {
             if (state.currentTool === "pen" || state.currentTool === "highlighter") {
                 state.currentCord.points.push({ x: e.clientX, y: e.clientY });
+            } else if (state.currentTool === "curve") {
+                if (state.curveStage === 1) {
+                    state.currentCord.controlX = e.clientX;
+                    state.currentCord.controlY = e.clientY;
+                } else {
+                    state.currentCord.toX = e.clientX;
+                    state.currentCord.toY = e.clientY;
+                    // Keep control point at center during stage 0
+                    state.currentCord.controlX =
+                        (state.currentCord.fromX + e.clientX) / 2;
+                    state.currentCord.controlY =
+                        (state.currentCord.fromY + e.clientY) / 2;
+                }
+            } else if (state.currentTool === "polygon") {
+                state.currentCord.points[state.currentCord.points.length - 1] = {
+                    x: e.clientX,
+                    y: e.clientY,
+                };
             } else {
                 state.currentCord.toX = e.clientX;
                 state.currentCord.toY = e.clientY;
@@ -277,6 +351,13 @@
                         point.x += dx;
                         point.y += dy;
                     }
+                } else if (s.type === "curve") {
+                    s.fromX += dx;
+                    s.toX += dx;
+                    s.fromY += dy;
+                    s.toY += dy;
+                    s.controlX += dx;
+                    s.controlY += dy;
                 } else {
                     s.fromX += dx;
                     s.toX += dx;
@@ -295,9 +376,30 @@
     };
 
     app.handleMouseUp = (e) => {
-        stopLoop();
-
         if (state.isDrawing && state.currentCord) {
+            if (state.currentTool === "curve") {
+                if (state.curveStage === 0) {
+                    const { fromX, fromY, toX, toY } = state.currentCord;
+                    if (
+                        Math.abs(toX - fromX) >= MIN_DRAG_PX ||
+                        Math.abs(toY - fromY) >= MIN_DRAG_PX
+                    ) {
+                        state.curveStage = 1; // Move to Stage 1: defining Control Point
+                        // Keep loop running for preview
+                        return;
+                    } else {
+                        state.isDrawing = false;
+                        state.currentCord = null;
+                        stopLoop();
+                    }
+                }
+                return;
+            } else if (state.currentTool === "polygon") {
+                // Polygons stay in drawing mode until closed or double-clicked
+                return;
+            }
+
+            stopLoop();
             state.isDrawing = false;
             if (state.currentTool === "pen" || state.currentTool === "highlighter") {
                 if (state.currentCord.points.length > 1) {
@@ -305,6 +407,9 @@
                     app.saveToHistory();
                     app.persist("__arrow_shapes", state.shapes);
                 }
+            } else if (state.currentTool === "curve") {
+                // Handled above for transition
+                return;
             } else {
                 const { fromX, fromY, toX, toY } = state.currentCord;
                 if (
@@ -322,6 +427,7 @@
         }
 
         if (state.currentTool === "select" && state.dragMode) {
+            stopLoop();
             state.dragMode = null;
             state.dragStart = null;
             app.saveToHistory();
@@ -359,6 +465,7 @@
             if (state.isDrawing) {
                 state.isDrawing = false;
                 state.currentCord = null;
+                state.curveStage = 0;
             }
             state.selectedIndex = -1;
             state.currentTool = null;
@@ -366,13 +473,39 @@
             if (typeof app.updateToolStyles === "function") app.updateToolStyles();
         } else if (!e.ctrlKey && !e.metaKey && !e.altKey) {
             const key = e.key.toLowerCase();
+
+            if (state.selectedIndex >= 0) {
+                if (e.key === "[") {
+                    e.preventDefault();
+                    if (e.shiftKey) app.moveShapeToBottom();
+                    else app.moveShapeDown();
+                    app.saveToHistory();
+                    app.renderCanvas();
+                    if (typeof app.updateToolStyles === "function")
+                        app.updateToolStyles();
+                    return;
+                }
+                if (e.key === "]") {
+                    e.preventDefault();
+                    if (e.shiftKey) app.moveShapeToTop();
+                    else app.moveShapeUp();
+                    app.saveToHistory();
+                    app.renderCanvas();
+                    if (typeof app.updateToolStyles === "function")
+                        app.updateToolStyles();
+                    return;
+                }
+            }
+
             const tools = {
                 v: null,
                 a: "arrow",
                 l: "line",
+                n: "polygon",
                 c: "circle",
                 r: "rectangle",
                 t: "triangle",
+                u: "curve",
                 x: "text",
                 h: "highlighter",
                 p: "pen",
@@ -391,6 +524,22 @@
                         app.updateToolStyles();
                 }
             }
+        }
+    };
+    app.handleDblClick = (e) => {
+        if (state.isDrawing && state.currentCord?.type === "polygon") {
+            state.isDrawing = false;
+            // Remove the last point which followed the cursor
+            if (state.currentCord.points.length > 2) {
+                state.currentCord.points.pop();
+            }
+            state.currentCord.isClosed = true;
+            state.shapes.push({ ...state.currentCord });
+            state.currentCord = null;
+            app.saveToHistory();
+            app.renderCanvas();
+            app.persist("__arrow_shapes", state.shapes);
+            stopLoop();
         }
     };
 })();
