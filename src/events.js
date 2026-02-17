@@ -81,23 +81,25 @@
         ) {
             return state.selectedIndex;
         }
+
+        // Pass 1: Check non-highlighters (drawn on top)
         for (let i = state.shapes.length - 1; i >= 0; i--) {
             const s = state.shapes[i];
+            if (s.type === "highlighter") continue;
             const b = app.getShapeBBox(s);
             if (!b) continue;
-            if (
-                s.type === "rectangle" ||
-                s.type === "circle" ||
-                s.type === "text" ||
-                s.type === "pen" ||
-                s.type === "triangle" ||
-                s.type === "curve"
-            ) {
-                if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return i;
-            } else if (s.type === "arrow" || s.type === "line") {
-                return i;
-            }
+            if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return i;
         }
+
+        // Pass 2: Check highlighters (drawn at bottom)
+        for (let i = state.shapes.length - 1; i >= 0; i--) {
+            const s = state.shapes[i];
+            if (s.type !== "highlighter") continue;
+            const b = app.getShapeBBox(s);
+            if (!b) continue;
+            if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return i;
+        }
+
         return -1;
     }
 
