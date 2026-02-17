@@ -50,21 +50,13 @@
     }
 
     function getShapeCenter(shape) {
-        if (shape.type === "text") {
-            const b = app.getShapeBBox(shape);
-            return { x: b.x + b.w / 2, y: b.y + b.h / 2 };
-        }
-        return { x: (shape.fromX + shape.toX) / 2, y: (shape.fromY + shape.toY) / 2 };
+        const b = app.getShapeBBox(shape);
+        if (!b) return { x: 0, y: 0 };
+        return { x: b.x + b.w / 2, y: b.y + b.h / 2 };
     }
 
     function isOnRotateHandle(shape, x, y) {
-        if (
-            shape.type !== "arrow" &&
-            shape.type !== "rectangle" &&
-            shape.type !== "text" &&
-            shape.type !== "triangle"
-        )
-            return false;
+        if (!shape) return false;
         const bbox = app.getShapeBBox(shape);
         if (!bbox) return false;
         const handleX = bbox.x + bbox.w / 2,
@@ -198,6 +190,7 @@
                             color: state.color,
                             lineWidth: state.lineWidth,
                             opacity: state.opacity,
+                            rotation: 0,
                             text,
                         });
                         app.saveToHistory();

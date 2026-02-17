@@ -82,6 +82,7 @@
         toX,
         toY,
         color,
+        rotation = 0,
         lineWidth = state.lineWidth,
         opacity = state.opacity,
     }) {
@@ -90,6 +91,12 @@
         const centerX = (fromX + toX) / 2;
         const centerY = (fromY + toY) / 2;
         const radius = Math.abs(toX - fromX) / 2;
+        ctx.save();
+        if (rotation !== 0) {
+            ctx.translate(centerX, centerY);
+            ctx.rotate(rotation);
+            ctx.translate(-centerX, -centerY);
+        }
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
         ctx.fillStyle = rgbaColor;
@@ -97,6 +104,7 @@
         ctx.fill();
         ctx.lineWidth = Math.max(1, lineWidth);
         ctx.stroke();
+        ctx.restore();
     }
 
     function drawRectangle({
@@ -178,11 +186,20 @@
         toX,
         toY,
         color,
+        rotation = 0,
         lineWidth = state.lineWidth,
         opacity = state.opacity,
     }) {
         const ctx = state.ctx;
         const rgbaColor = hexToRgba(color, opacity);
+        ctx.save();
+        if (rotation !== 0) {
+            const centerX = (fromX + toX) / 2;
+            const centerY = (fromY + toY) / 2;
+            ctx.translate(centerX, centerY);
+            ctx.rotate(rotation);
+            ctx.translate(-centerX, -centerY);
+        }
         ctx.beginPath();
         ctx.moveTo(fromX, fromY);
         ctx.lineTo(toX, toY);
@@ -195,6 +212,7 @@
         ctx.strokeStyle = rgbaColor;
         ctx.lineWidth = Math.max(1, lineWidth);
         ctx.stroke();
+        ctx.restore();
     }
 
     function drawCurve({
@@ -205,11 +223,20 @@
         toX,
         toY,
         color,
+        rotation = 0,
         lineWidth = state.lineWidth,
         opacity = state.opacity,
     }) {
         const ctx = state.ctx;
         const rgbaColor = hexToRgba(color, opacity);
+        ctx.save();
+        if (rotation !== 0) {
+            const centerX = (fromX + toX) / 2;
+            const centerY = (fromY + toY) / 2;
+            ctx.translate(centerX, centerY);
+            ctx.rotate(rotation);
+            ctx.translate(-centerX, -centerY);
+        }
         ctx.beginPath();
         ctx.moveTo(fromX, fromY);
         ctx.quadraticCurveTo(controlX, controlY, toX, toY);
@@ -222,17 +249,28 @@
         ctx.strokeStyle = rgbaColor;
         ctx.lineWidth = Math.max(1, lineWidth);
         ctx.stroke();
+        ctx.restore();
     }
 
     function drawPen({
         points,
         color,
+        rotation = 0,
         lineWidth = state.lineWidth,
         opacity = state.opacity,
     }) {
         if (points.length < 2) return;
         const ctx = state.ctx;
         const rgbaColor = hexToRgba(color, opacity);
+        ctx.save();
+        if (rotation !== 0) {
+            const bbox = app.getShapeBBox({ type: "pen", points });
+            const centerX = bbox.x + bbox.w / 2;
+            const centerY = bbox.y + bbox.h / 2;
+            ctx.translate(centerX, centerY);
+            ctx.rotate(rotation);
+            ctx.translate(-centerX, -centerY);
+        }
         ctx.strokeStyle = rgbaColor;
         ctx.lineWidth = Math.max(1, lineWidth);
         ctx.lineCap = "round";
@@ -259,11 +297,13 @@
             ctx.lineTo(points[1].x, points[1].y);
         }
         ctx.stroke();
+        ctx.restore();
     }
 
     function drawPolygon({
         points,
         color,
+        rotation = 0,
         lineWidth = state.lineWidth,
         opacity = state.opacity,
         isClosed = false,
@@ -271,6 +311,15 @@
         if (points.length < 1) return;
         const ctx = state.ctx;
         const rgbaColor = hexToRgba(color, opacity);
+        ctx.save();
+        if (rotation !== 0) {
+            const bbox = app.getShapeBBox({ type: "polygon", points });
+            const centerX = bbox.x + bbox.w / 2;
+            const centerY = bbox.y + bbox.h / 2;
+            ctx.translate(centerX, centerY);
+            ctx.rotate(rotation);
+            ctx.translate(-centerX, -centerY);
+        }
         ctx.beginPath();
         ctx.moveTo(points[0].x, points[0].y);
         for (let i = 1; i < points.length; i++) {
@@ -290,6 +339,7 @@
             ctx.lineWidth = Math.max(1, lineWidth);
             ctx.stroke();
         }
+        ctx.restore();
     }
 
     function drawText({
@@ -339,7 +389,13 @@
             shape.type === "arrow" ||
             shape.type === "rectangle" ||
             shape.type === "text" ||
-            shape.type === "triangle"
+            shape.type === "triangle" ||
+            shape.type === "circle" ||
+            shape.type === "polygon" ||
+            shape.type === "curve" ||
+            shape.type === "pen" ||
+            shape.type === "highlighter" ||
+            shape.type === "line"
         ) {
             const centerX = bbox.x + bbox.w / 2;
             const handleY = bbox.y - 20;
