@@ -12,7 +12,7 @@
     const { tools, colorInput, lineWidthSlider, opacitySlider } = app.createToolbar();
 
     const canvas = document.createElement("canvas");
-    canvas.id = "__arrow-canvas";
+    canvas.id = "___draw_it_canvas";
     document.body.append(canvas);
     state.canvas = canvas;
     state.ctx = canvas.getContext("2d");

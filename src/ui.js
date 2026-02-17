@@ -101,7 +101,7 @@
 
     app.showNotification = function (message, duration = 3000) {
         const banner = document.createElement("div");
-        banner.className = "notification-banner";
+        banner.className = "___draw_it_notification-banner";
         banner.textContent = message;
         document.body.appendChild(banner);
 
@@ -121,10 +121,10 @@
 
     app.showConfirm = function ({ title, message, onConfirm, onCancel }) {
         const overlay = document.createElement("div");
-        overlay.className = "modal-overlay";
+        overlay.className = "___draw_it_modal-overlay";
 
         const modal = document.createElement("div");
-        modal.className = "modal-content";
+        modal.className = "___draw_it_modal-content";
 
         const h3 = document.createElement("h3");
         h3.textContent = title;
@@ -133,10 +133,10 @@
         p.textContent = message;
 
         const actions = document.createElement("div");
-        actions.className = "modal-actions";
+        actions.className = "___draw_it_modal-actions";
 
         const cancelBtn = document.createElement("button");
-        cancelBtn.className = "modal-btn-cancel";
+        cancelBtn.className = "___draw_it_modal-btn-cancel";
         cancelBtn.textContent = "Cancel";
         cancelBtn.onclick = () => {
             overlay.classList.add("closing");
@@ -145,7 +145,7 @@
         };
 
         const confirmBtn = document.createElement("button");
-        confirmBtn.className = "modal-btn-confirm";
+        confirmBtn.className = "___draw_it_modal-btn-confirm";
         confirmBtn.textContent = "Clear All";
         confirmBtn.onclick = () => {
             overlay.classList.add("closing");
@@ -164,7 +164,7 @@
 
     function createSlider({ title, min, max, step, initialValue, onInput, onChange }) {
         const container = document.createElement("div");
-        container.className = "slider-container";
+        container.className = "___draw_it_slider-container";
         container.title = title;
 
         const slider = document.createElement("input");
@@ -175,7 +175,7 @@
         slider.value = initialValue;
 
         const tooltip = document.createElement("div");
-        tooltip.className = "slider-tooltip";
+        tooltip.className = "___draw_it_slider-tooltip";
         tooltip.textContent = initialValue;
 
         const updateTooltip = () => {
@@ -234,18 +234,18 @@
 
     app.createToolbar = function () {
         const overlay = document.createElement("div");
-        overlay.id = "overlay";
+        overlay.id = "___draw_it_overlay";
         state.overlay = overlay;
 
         const tools = document.createElement("div");
-        tools.id = "tools";
+        tools.id = "___draw_it_tools";
         state.tools = tools;
 
         const grabArea = document.createElement("div");
-        grabArea.className = "grabArea";
+        grabArea.className = "___draw_it_grabArea";
         grabArea.innerHTML =
-            '<div class="grabHandle"></div>' +
-            '<span class="grabTitle">Shapes Drawer</span>';
+            '<div class="___draw_it_grabHandle"></div>' +
+            '<span class="___draw_it_grabTitle">Shapes Drawer</span>';
 
         let offsetX = 0,
             offsetY = 0,
@@ -296,90 +296,129 @@
             return btn;
         };
 
-        cursorBtn = createButton("cursor", "Cursor (V)", "cursorBtn", () =>
+        cursorBtn = createButton("cursor", "Cursor (V)", "___draw_it_cursorBtn", () =>
             setTool(null),
         );
-        arrowBtn = createButton("arrow", "Arrow (A)", "arrowBtn", () => setTool("arrow"));
-        lineBtn = createButton("line", "Line (L)", "lineBtn", () => setTool("line"));
-        rectangleBtn = createButton("rectangle", "Rectangle (R)", "rectangleBtn", () =>
-            setTool("rectangle"),
+        arrowBtn = createButton("arrow", "Arrow (A)", "___draw_it_arrowBtn", () =>
+            setTool("arrow"),
         );
-        triangleBtn = createButton("triangle", "Triangle (T)", "triangleBtn", () =>
-            setTool("triangle"),
+        lineBtn = createButton("line", "Line (L)", "___draw_it_lineBtn", () =>
+            setTool("line"),
         );
-        circleBtn = createButton("circle", "Circle (C)", "circleBtn", () =>
+        rectangleBtn = createButton(
+            "rectangle",
+            "Rectangle (R)",
+            "___draw_it_rectangleBtn",
+            () => setTool("rectangle"),
+        );
+        triangleBtn = createButton(
+            "triangle",
+            "Triangle (T)",
+            "___draw_it_triangleBtn",
+            () => setTool("triangle"),
+        );
+        circleBtn = createButton("circle", "Circle (C)", "___draw_it_circleBtn", () =>
             setTool("circle"),
         );
-        textBtn = createButton("text", "Text (X)", "textBtn", () => setTool("text"));
-        curveBtn = createButton("curve", "Curve (U)", "curveBtn", () => setTool("curve"));
-        polygonBtn = createButton("polygon", "Polygon (N)", "polygonBtn", () =>
+        textBtn = createButton("text", "Text (X)", "___draw_it_textBtn", () =>
+            setTool("text"),
+        );
+        curveBtn = createButton("curve", "Curve (U)", "___draw_it_curveBtn", () =>
+            setTool("curve"),
+        );
+        polygonBtn = createButton("polygon", "Polygon (N)", "___draw_it_polygonBtn", () =>
             setTool("polygon"),
         );
-        forwardBtn = createButton("forward", "Bring Forward (])", "forwardBtn", () => {
-            app.moveShapeUp();
-            app.saveToHistory();
-            app.renderCanvas();
-            updateToolStyles();
-        });
-        backwardBtn = createButton("backward", "Send Backward ([)", "backwardBtn", () => {
-            app.moveShapeDown();
-            app.saveToHistory();
-            app.renderCanvas();
-            updateToolStyles();
-        });
-        penBtn = createButton("pen", "Pen (P)", "penBtn", () => setTool("pen"));
+        forwardBtn = createButton(
+            "forward",
+            "Bring Forward (])",
+            "___draw_it_forwardBtn",
+            () => {
+                app.moveShapeUp();
+                app.saveToHistory();
+                app.renderCanvas();
+                updateToolStyles();
+            },
+        );
+        backwardBtn = createButton(
+            "backward",
+            "Send Backward ([)",
+            "___draw_it_backwardBtn",
+            () => {
+                app.moveShapeDown();
+                app.saveToHistory();
+                app.renderCanvas();
+                updateToolStyles();
+            },
+        );
+        penBtn = createButton("pen", "Pen (P)", "___draw_it_penBtn", () =>
+            setTool("pen"),
+        );
         highlighterBtn = createButton(
             "highlighter",
             "Highlighter (H)",
-            "highlighterBtn",
+            "___draw_it_highlighterBtn",
             () => setTool("highlighter"),
         );
-        selectBtn = createButton("select", "Select/Move (M)", "selectBtn", () =>
-            setTool("select"),
+        selectBtn = createButton(
+            "select",
+            "Select/Move (M)",
+            "___draw_it_selectBtn",
+            () => setTool("select"),
         );
 
-        eraserBtn = createButton("clear", "Eraser (E)", "eraserBtn", () =>
+        eraserBtn = createButton("clear", "Eraser (E)", "___draw_it_eraserBtn", () =>
             setTool("eraser"),
         );
         eraserBtn.innerHTML =
             '<svg viewBox="0 0 24 24"><path d="M16.24,3.56L21.19,8.51c0.78,0.78,0.78,2.05,0,2.83l-8.48,8.48c-0.78,0.78-2.05,0.78-2.83,0l-4.95-4.95 c-0.78-0.78-0.78-2.05,0-2.83l8.48-8.48C14.19,2.78,15.46,2.78,16.24,3.56z M7.06,14.88l4.95,4.95L19.07,12.8l-4.95-4.95L7.06,14.88z"/></svg>';
 
-        undoBtn = createButton("undo", "Undo (Ctrl+Z)", "undoBtn", () => {
+        undoBtn = createButton("undo", "Undo (Ctrl+Z)", "___draw_it_undoBtn", () => {
             app.undo();
             app.renderCanvas();
             updateUndoRedoButtons();
         });
-        redoBtn = createButton("redo", "Redo (Ctrl+Y)", "redoBtn", () => {
+        redoBtn = createButton("redo", "Redo (Ctrl+Y)", "___draw_it_redoBtn", () => {
             app.redo();
             app.renderCanvas();
             updateUndoRedoButtons();
         });
 
-        const clearBtn = createButton("clear", "Clear all (D)", "clearBtn", () => {
-            app.showConfirm({
-                title: "Clear Canvas?",
-                message: "This will permanently delete all your drawings.",
-                onConfirm: () => {
-                    state.shapes = [];
-                    state.selectedIndex = -1;
-                    app.saveToHistory();
-                    app.renderCanvas();
-                    app.persist("__arrow_shapes", []);
-                },
-            });
-        });
-        const saveBtn = createButton("save", "Save as PNG (S)", "saveBtn", () => {
-            const img = state.canvas.toDataURL("image/png");
-            const a = document.createElement("a");
-            a.href = img;
-            a.download = "drawing.png";
-            a.click();
-        });
+        const clearBtn = createButton(
+            "clear",
+            "Clear all (D)",
+            "___draw_it_clearBtn",
+            () => {
+                app.showConfirm({
+                    title: "Clear Canvas?",
+                    message: "This will permanently delete all your drawings.",
+                    onConfirm: () => {
+                        state.shapes = [];
+                        state.selectedIndex = -1;
+                        app.saveToHistory();
+                        app.renderCanvas();
+                        app.persist("__arrow_shapes", []);
+                    },
+                });
+            },
+        );
+        const saveBtn = createButton(
+            "save",
+            "Save as PNG (S)",
+            "___draw_it_saveBtn",
+            () => {
+                const img = state.canvas.toDataURL("image/png");
+                const a = document.createElement("a");
+                a.href = img;
+                a.download = "drawing.png";
+                a.click();
+            },
+        );
 
         const screenShotBtn = createButton(
             "screenshot",
             "Take Screenshot",
-            "screenShot",
+            "___draw_it_screenShot",
             () => {
                 if (state.loadingNotification) return;
                 state.loadingNotification = app.showNotification("Capturing...", null);
@@ -397,7 +436,7 @@
 
         const colorInput = document.createElement("input");
         colorInput.type = "color";
-        colorInput.className = "colorInput";
+        colorInput.className = "___draw_it_colorInput";
         colorInput.title = "Color";
         colorInput.value = state.color;
         colorInput.addEventListener("input", (e) => {

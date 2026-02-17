@@ -108,9 +108,9 @@
 
         // Don't start drawing if clicking on buttons or sliders
         if (
-            e.target.closest("#tools") ||
-            e.target.closest(".slider-container") ||
-            e.target.closest(".notification-banner")
+            e.target.closest("#___draw_it_tools") ||
+            e.target.closest(".___draw_it_slider-container") ||
+            e.target.closest(".___draw_it_notification-banner")
         ) {
             return;
         }
@@ -452,7 +452,7 @@
                 app.persist("__arrow_shapes", state.shapes);
             } else if (e.key === "s") {
                 e.preventDefault();
-                const saveBtn = document.querySelector(".saveBtn");
+                const saveBtn = document.querySelector(".___draw_it_saveBtn");
                 if (saveBtn) saveBtn.click();
             }
         } else if (e.key === "Delete" || e.key === "Backspace") {
@@ -518,7 +518,7 @@
 
             if (key in tools) {
                 if (tools[key] === "clear") {
-                    const clearBtn = document.querySelector(".clearBtn");
+                    const clearBtn = document.querySelector(".___draw_it_clearBtn");
                     if (clearBtn) clearBtn.click();
                 } else {
                     state.currentTool = tools[key];

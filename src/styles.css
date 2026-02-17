@@ -1,14 +1,15 @@
 :root {
-    --bg-color: rgba(36, 40, 43, 0.85);
-    --text-color: #e0694f;
-    --accent-color: #c885ff;
-    --border-color: rgba(255, 255, 255, 0.1);
-    --hover-color: rgba(255, 255, 255, 0.15);
-    --active-color: rgba(255, 255, 255, 0.25);
-    --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --draw-it-bg-color: rgba(36, 40, 43, 0.85);
+    --draw-it-text-color: #e0694f;
+    --draw-it-accent-color: #c885ff;
+    --draw-it-border-color: rgba(255, 255, 255, 0.1);
+    --draw-it-hover-color: rgba(255, 255, 255, 0.15);
+    --draw-it-active-color: rgba(255, 255, 255, 0.25);
+    --draw-it-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
-#__arrow-canvas {
+#___draw_it_canvas {
+    all: initial;
     position: fixed;
     width: 100vw;
     height: 100vh;
@@ -16,9 +17,11 @@
     top: 0;
     left: 0;
     pointer-events: none;
+    box-sizing: border-box;
 }
 
-#overlay {
+#___draw_it_overlay {
+    all: initial;
     position: fixed;
     top: 0;
     left: 0;
@@ -26,23 +29,25 @@
     height: 100vh;
     pointer-events: none;
     z-index: 9999999;
+    box-sizing: border-box;
+    font-family: "Outfit", sans-serif;
 }
 
-#overlay #tools {
+#___draw_it_overlay #___draw_it_tools {
     pointer-events: auto;
     position: absolute;
     right: 20px;
     top: 20px;
     padding: 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--draw-it-border-color);
     border-radius: 16px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
-    background: var(--bg-color);
+    background: var(--draw-it-bg-color);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    box-shadow: var(--shadow);
+    box-shadow: var(--draw-it-shadow);
     align-items: center;
     width: 110px;
     transition:
@@ -53,7 +58,7 @@
     will-change: left, top;
 }
 
-#overlay #tools .grabArea {
+#___draw_it_overlay #___draw_it_tools .___draw_it_grabArea {
     grid-column: 1 / -1;
     height: auto;
     cursor: grab;
@@ -62,47 +67,47 @@
     align-items: center;
     gap: 6px;
     padding-bottom: 8px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--draw-it-border-color);
     margin-bottom: 8px;
 }
 
-#overlay #tools .grabHandle {
+#___draw_it_overlay #___draw_it_tools .___draw_it_grabHandle {
     width: 32px;
     height: 4px;
-    background: var(--border-color);
+    background: var(--draw-it-border-color);
     border-radius: 2px;
     transition: background 0.2s;
 }
 
-#overlay #tools .grabArea:hover .grabHandle {
-    background: var(--accent-color);
+#___draw_it_overlay #___draw_it_tools .___draw_it_grabArea:hover .___draw_it_grabHandle {
+    background: var(--draw-it-accent-color);
 }
 
-#overlay #tools .grabTitle {
+#___draw_it_overlay #___draw_it_tools .___draw_it_grabTitle {
     font-size: 12px;
     font-weight: 700;
     text-align: center;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: rgba(255, 255, 255, 0.5);
-    font-family: "Outfit", sans-serif;
+    font-family: inherit;
     user-select: none;
 }
 
-#overlay #tools .grabArea:active {
+#___draw_it_overlay #___draw_it_tools .___draw_it_grabArea:active {
     cursor: grabbing;
 }
 
-#overlay #tools button,
-#overlay #tools .colorInput {
+#___draw_it_overlay #___draw_it_tools button,
+#___draw_it_overlay #___draw_it_tools .___draw_it_colorInput {
     all: unset;
     box-sizing: border-box;
     width: 38px;
     height: 38px;
     border-radius: 10px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--draw-it-border-color);
     padding: 8px;
-    color: var(--text-color);
+    color: var(--draw-it-text-color);
     background: transparent;
     cursor: pointer;
     display: flex;
@@ -111,24 +116,24 @@
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-#overlay #tools button:hover,
-#overlay #tools .colorInput:hover {
-    background: var(--hover-color);
+#___draw_it_overlay #___draw_it_tools button:hover,
+#___draw_it_overlay #___draw_it_tools .___draw_it_colorInput:hover {
+    background: var(--draw-it-hover-color);
     transform: translateY(-1px);
 }
 
-#overlay #tools button:active {
-    background: var(--active-color);
+#___draw_it_overlay #___draw_it_tools button:active {
+    background: var(--draw-it-active-color);
     transform: translateY(0);
 }
 
-#overlay #tools button svg {
+#___draw_it_overlay #___draw_it_tools button svg {
     width: 20px;
     height: 20px;
     fill: currentColor;
 }
 
-.slider-container {
+.___draw_it_slider-container {
     position: relative;
     grid-column: span 2;
     display: flex;
@@ -137,72 +142,73 @@
     padding: 8px 0;
 }
 
-.slider-tooltip {
+.___draw_it_slider-tooltip {
     position: absolute;
     top: -24px;
-    background: var(--accent-color);
+    background: var(--draw-it-accent-color);
     color: #000;
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 10px;
     font-weight: bold;
-    font-family: "Outfit", sans-serif;
+    font-family: inherit;
     pointer-events: none;
     transform: translateX(-50%);
     opacity: 0;
     transition: opacity 0.2s;
 }
 
-.slider-container:hover .slider-tooltip {
+.___draw_it_slider-container:hover .___draw_it_slider-tooltip {
     opacity: 1;
 }
 
-#overlay #tools input[type="range"] {
+#___draw_it_overlay #___draw_it_tools input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
     height: 4px;
-    background: var(--border-color);
+    background: var(--draw-it-border-color);
     border-radius: 2px;
     outline: none;
 }
 
-#overlay #tools input[type="range"]::-webkit-slider-thumb {
+#___draw_it_overlay #___draw_it_tools input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 14px;
     height: 14px;
-    background: var(--text-color);
+    background: var(--draw-it-text-color);
     border-radius: 50%;
     cursor: pointer;
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
     transition: transform 0.1s;
 }
 
-#overlay #tools input[type="range"]::-webkit-slider-thumb:hover {
+#___draw_it_overlay #___draw_it_tools input[type="range"]::-webkit-slider-thumb:hover {
     transform: scale(1.2);
-    background: var(--accent-color);
+    background: var(--draw-it-accent-color);
 }
 
-.notification-banner {
+.___draw_it_notification-banner {
+    all: initial;
     position: fixed;
     top: 24px;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--bg-color);
+    background: var(--draw-it-bg-color);
     backdrop-filter: blur(8px);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
+    border: 1px solid var(--draw-it-border-color);
+    color: var(--draw-it-text-color);
     padding: 12px 24px;
     border-radius: 12px;
     z-index: 10000000;
     font-family: "Outfit", sans-serif;
     font-size: 14px;
     font-weight: 500;
-    box-shadow: var(--shadow);
-    animation: slide-in-out 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    box-shadow: var(--draw-it-shadow);
+    animation: ___draw_it_slide-in-out 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-@keyframes slide-in-out {
+@keyframes ___draw_it_slide-in-out {
     0% {
         opacity: 0;
         transform: translate(-50%, -20px);
@@ -221,23 +227,24 @@
     }
 }
 
-.undoBtn:disabled,
-.redoBtn:disabled {
+.___draw_it_undoBtn:disabled,
+.___draw_it_redoBtn:disabled {
     cursor: not-allowed;
     opacity: 0.3;
 }
 
-.colorInput::-webkit-color-swatch-wrapper {
+.___draw_it_colorInput::-webkit-color-swatch-wrapper {
     padding: 0;
 }
 
-.colorInput::-webkit-color-swatch {
+.___draw_it_colorInput::-webkit-color-swatch {
     border: none;
     border-radius: 8px;
 }
 
 /* Modal Styles */
-.modal-overlay {
+.___draw_it_modal-overlay {
+    all: initial;
     position: fixed;
     top: 0;
     left: 0;
@@ -249,77 +256,81 @@
     align-items: center;
     justify-content: center;
     z-index: 10000001;
-    animation: fade-in 0.2s ease-out;
+    animation: ___draw_it_fade-in 0.2s ease-out;
 }
 
-.modal-content {
-    background: var(--bg-color);
-    border: 1px solid var(--border-color);
+.___draw_it_modal-content {
+    background: var(--draw-it-bg-color);
+    border: 1px solid var(--draw-it-border-color);
     padding: 24px;
     border-radius: 20px;
     width: 320px;
-    box-shadow: var(--shadow);
+    box-shadow: var(--draw-it-shadow);
     text-align: center;
-    animation: scale-up 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.modal-overlay.closing {
-    animation: fade-out 0.2s ease-in forwards;
-}
-
-.modal-overlay.closing .modal-content {
-    animation: scale-down 0.2s ease-in forwards;
-}
-
-.modal-content h3 {
-    margin: 0 0 12px 0;
+    animation: ___draw_it_scale-up 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: "Outfit", sans-serif;
-    color: var(--text-color);
 }
 
-.modal-content p {
+.___draw_it_modal-overlay.closing {
+    animation: ___draw_it_fade-out 0.2s ease-in forwards;
+}
+
+.___draw_it_modal-overlay.closing .___draw_it_modal-content {
+    animation: ___draw_it_scale-down 0.2s ease-in forwards;
+}
+
+.___draw_it_modal-content h3 {
+    margin: 0 0 12px 0;
+    font-family: inherit;
+    color: var(--draw-it-text-color);
+}
+
+.___draw_it_modal-content p {
     margin: 0 0 24px 0;
     color: rgba(255, 255, 255, 0.7);
     font-size: 14px;
     line-height: 1.5;
 }
 
-.modal-actions {
+.___draw_it_modal-actions {
     display: flex;
     gap: 12px;
 }
 
-.modal-actions button {
+.___draw_it_modal-actions button {
+    all: unset;
     flex: 1;
     padding: 10px;
     border-radius: 12px;
     border: none;
     font-weight: 600;
-    font-family: "Outfit", sans-serif;
+    font-family: inherit;
     cursor: pointer;
     transition: all 0.2s;
+    box-sizing: border-box;
+    text-align: center;
 }
 
-.modal-btn-cancel {
-    background: var(--hover-color);
-    color: var(--text-color);
+.___draw_it_modal-btn-cancel {
+    background: var(--draw-it-hover-color);
+    color: var(--draw-it-text-color);
 }
 
-.modal-btn-cancel:hover {
-    background: var(--active-color);
+.___draw_it_modal-btn-cancel:hover {
+    background: var(--draw-it-active-color);
 }
 
-.modal-btn-confirm {
+.___draw_it_modal-btn-confirm {
     background: #ff4757;
     color: white;
 }
 
-.modal-btn-confirm:hover {
+.___draw_it_modal-btn-confirm:hover {
     background: #ff6b81;
     transform: translateY(-1px);
 }
 
-@keyframes fade-in {
+@keyframes ___draw_it_fade-in {
     from {
         opacity: 0;
     }
@@ -327,7 +338,7 @@
         opacity: 1;
     }
 }
-@keyframes fade-out {
+@keyframes ___draw_it_fade-out {
     from {
         opacity: 1;
     }
@@ -335,7 +346,7 @@
         opacity: 0;
     }
 }
-@keyframes scale-up {
+@keyframes ___draw_it_scale-up {
     from {
         opacity: 0;
         transform: scale(0.9);
@@ -345,7 +356,7 @@
         transform: scale(1);
     }
 }
-@keyframes scale-down {
+@keyframes ___draw_it_scale-down {
     from {
         opacity: 1;
         transform: scale(1);
