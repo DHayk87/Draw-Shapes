@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
+
 :root {
     --draw-it-bg-color: rgba(36, 40, 43, 0.85);
     --draw-it-text-color: #e0694f;
@@ -6,6 +8,21 @@
     --draw-it-hover-color: rgba(255, 255, 255, 0.15);
     --draw-it-active-color: rgba(255, 255, 255, 0.25);
     --draw-it-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Universal reset for extension elements to ensure absolute isolation */
+#___draw_it_overlay *,
+#___draw_it_overlay *::before,
+#___draw_it_overlay *::after,
+.___draw_it_notification-banner,
+.___draw_it_notification-banner *,
+.___draw_it_modal-overlay,
+.___draw_it_modal-overlay * {
+    box-sizing: border-box !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
 }
 
 #___draw_it_canvas {
@@ -17,7 +34,6 @@
     top: 0;
     left: 0;
     pointer-events: none;
-    box-sizing: border-box;
 }
 
 #___draw_it_overlay {
@@ -29,8 +45,10 @@
     height: 100vh;
     pointer-events: none;
     z-index: 9999999;
-    box-sizing: border-box;
     font-family: "Outfit", sans-serif;
+    color: #fff;
+    line-height: normal;
+    text-align: left;
 }
 
 #___draw_it_overlay #___draw_it_tools {
@@ -66,7 +84,7 @@
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    padding-bottom: 8px;
+    padding: 0 0 8px 0;
     border-bottom: 1px solid var(--draw-it-border-color);
     margin-bottom: 8px;
 }
@@ -101,7 +119,6 @@
 #___draw_it_overlay #___draw_it_tools button,
 #___draw_it_overlay #___draw_it_tools .___draw_it_colorInput {
     all: unset;
-    box-sizing: border-box;
     width: 38px;
     height: 38px;
     border-radius: 10px;
@@ -114,6 +131,7 @@
     align-items: center;
     justify-content: center;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
 }
 
 #___draw_it_overlay #___draw_it_tools button:hover,
@@ -131,6 +149,7 @@
     width: 20px;
     height: 20px;
     fill: currentColor;
+    display: block;
 }
 
 .___draw_it_slider-container {
@@ -156,6 +175,7 @@
     transform: translateX(-50%);
     opacity: 0;
     transition: opacity 0.2s;
+    line-height: normal;
 }
 
 .___draw_it_slider-container:hover .___draw_it_slider-tooltip {
@@ -170,6 +190,7 @@
     background: var(--draw-it-border-color);
     border-radius: 2px;
     outline: none;
+    margin: 8px 0;
 }
 
 #___draw_it_overlay #___draw_it_tools input[type="range"]::-webkit-slider-thumb {
@@ -206,6 +227,8 @@
     font-weight: 500;
     box-shadow: var(--draw-it-shadow);
     animation: ___draw_it_slide-in-out 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    line-height: normal;
+    text-align: center;
 }
 
 @keyframes ___draw_it_slide-in-out {
@@ -229,8 +252,8 @@
 
 .___draw_it_undoBtn:disabled,
 .___draw_it_redoBtn:disabled {
-    cursor: not-allowed;
-    opacity: 0.3;
+    cursor: not-allowed !important;
+    opacity: 0.3 !important;
 }
 
 .___draw_it_colorInput::-webkit-color-swatch-wrapper {
@@ -257,6 +280,7 @@
     justify-content: center;
     z-index: 10000001;
     animation: ___draw_it_fade-in 0.2s ease-out;
+    pointer-events: auto;
 }
 
 .___draw_it_modal-content {
@@ -269,6 +293,8 @@
     text-align: center;
     animation: ___draw_it_scale-up 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: "Outfit", sans-serif;
+    color: #fff;
+    line-height: 1.5;
 }
 
 .___draw_it_modal-overlay.closing {
@@ -283,13 +309,14 @@
     margin: 0 0 12px 0;
     font-family: inherit;
     color: var(--draw-it-text-color);
+    font-size: 1.2em;
+    font-weight: 600;
 }
 
 .___draw_it_modal-content p {
     margin: 0 0 24px 0;
     color: rgba(255, 255, 255, 0.7);
     font-size: 14px;
-    line-height: 1.5;
 }
 
 .___draw_it_modal-actions {
@@ -302,7 +329,6 @@
     flex: 1;
     padding: 10px;
     border-radius: 12px;
-    border: none;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
@@ -314,6 +340,7 @@
 .___draw_it_modal-btn-cancel {
     background: var(--draw-it-hover-color);
     color: var(--draw-it-text-color);
+    border: 1px solid var(--draw-it-border-color);
 }
 
 .___draw_it_modal-btn-cancel:hover {
