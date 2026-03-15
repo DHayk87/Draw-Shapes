@@ -182,10 +182,10 @@
             const value = slider.value;
             tooltip.textContent = value;
             const percent = (value - min) / (max - min);
-            const thumbWidth = 18;
-            const trackWidth = slider.offsetWidth - thumbWidth;
+            const thumbWidth = 14;
+            const percentWidth = percent * 100;
             const offset = thumbWidth / 2 - thumbWidth * percent;
-            tooltip.style.left = `${Math.round(trackWidth * percent) + offset}px`;
+            tooltip.style.left = `calc(${percentWidth}% + ${offset}px)`;
         };
 
         slider.addEventListener("input", (e) => {
@@ -320,7 +320,7 @@
         circleBtn = createButton("circle", "Circle (C)", "___draw_it_circleBtn", () =>
             setTool("circle"),
         );
-        textBtn = createButton("text", "Text (X)", "___draw_it_textBtn", () =>
+        textBtn = createButton("text", "Text (W)", "___draw_it_textBtn", () =>
             setTool("text"),
         );
         curveBtn = createButton("curve", "Curve (U)", "___draw_it_curveBtn", () =>
@@ -434,15 +434,20 @@
             },
         );
 
+        const colorPickerContainer = document.createElement("div");
+        colorPickerContainer.className = "___draw_it_colorPickerContainer";
+        colorPickerContainer.title = "Colors (X to swap)";
+
         const colorInput = document.createElement("input");
         colorInput.type = "color";
-        colorInput.className = "___draw_it_colorInput";
-        colorInput.title = "Color";
+        colorInput.className = "___draw_it_colorInput ___draw_it_primaryColor";
+        colorInput.title = "Primary Color";
         colorInput.value = state.color;
         colorInput.addEventListener("input", (e) => {
             state.color = e.target.value;
             app.persist("__arrow_controls", {
                 color: state.color,
+                secondaryColor: state.secondaryColor,
                 lineWidth: state.lineWidth,
                 opacity: state.opacity,
             });
@@ -454,6 +459,51 @@
             }
         });
 
+        const secondaryColorInput = document.createElement("input");
+        secondaryColorInput.type = "color";
+        secondaryColorInput.className = "___draw_it_colorInput ___draw_it_secondaryColor";
+        secondaryColorInput.title = "Secondary Color";
+        secondaryColorInput.value = state.secondaryColor;
+        secondaryColorInput.addEventListener("input", (e) => {
+            state.secondaryColor = e.target.value;
+            app.persist("__arrow_controls", {
+                color: state.color,
+                secondaryColor: state.secondaryColor,
+                lineWidth: state.lineWidth,
+                opacity: state.opacity,
+            });
+        });
+
+        const swapBtn = document.createElement("button");
+        swapBtn.className = "___draw_it_swapColorsBtn";
+        swapBtn.title = "Swap Colors (X)";
+        swapBtn.innerHTML =
+            '<svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H9.5l4 4 3.5-.5zm-10 3V17c0 .55.45 1 1 1h6.5l-4-4-3.5.5z"/></svg>';
+
+        swapBtn.addEventListener("click", () => {
+            const temp = state.color;
+            state.color = state.secondaryColor;
+            state.secondaryColor = temp;
+            colorInput.value = state.color;
+            secondaryColorInput.value = state.secondaryColor;
+
+            app.persist("__arrow_controls", {
+                color: state.color,
+                secondaryColor: state.secondaryColor,
+                lineWidth: state.lineWidth,
+                opacity: state.opacity,
+            });
+
+            if (state.selectedIndex >= 0) {
+                state.shapes[state.selectedIndex].color = state.color;
+                app.saveToHistory();
+                app.renderCanvas();
+                app.persist("__arrow_shapes", state.shapes);
+            }
+        });
+
+        colorPickerContainer.append(secondaryColorInput, colorInput, swapBtn);
+
         const { container: lineWidthContainer, slider: lineWidthSlider } = createSlider({
             title: "Line Width",
             min: 1,
@@ -464,6 +514,7 @@
                 state.lineWidth = parseInt(e.target.value, 10);
                 app.persist("__arrow_controls", {
                     color: state.color,
+                    secondaryColor: state.secondaryColor,
                     lineWidth: state.lineWidth,
                     opacity: state.opacity,
                 });
@@ -490,6 +541,7 @@
                 state.opacity = parseFloat(e.target.value);
                 app.persist("__arrow_controls", {
                     color: state.color,
+                    secondaryColor: state.secondaryColor,
                     lineWidth: state.lineWidth,
                     opacity: state.opacity,
                 });
@@ -509,7 +561,7 @@
         tools.append(
             grabArea,
             cursorBtn,
-            colorInput,
+            colorPickerContainer,
             lineWidthContainer,
             opacityContainer,
             penBtn,
@@ -540,6 +592,6 @@
         app.updateUndoRedoButtons = updateUndoRedoButtons;
         app.updateToolStyles = updateToolStyles;
 
-        return { tools, colorInput, lineWidthSlider, opacitySlider };
+        return { tools, colorInput, secondaryColorInput, lineWidthSlider, opacitySlider };
     };
 })();

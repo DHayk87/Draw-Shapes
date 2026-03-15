@@ -227,7 +227,7 @@
                 return;
             }
             state.isDrawing = true;
-            state.curveStage = 0; // Stage 0: defining Start/End
+            state.curveStage = 0; 
             state.currentCord = {
                 type: "curve",
                 fromX: e.clientX,
@@ -501,7 +501,8 @@
                 r: "rectangle",
                 t: "triangle",
                 u: "curve",
-                x: "text",
+                w: "text",
+                x: "swap",
                 h: "highlighter",
                 p: "pen",
                 m: "select",
@@ -513,6 +514,9 @@
                 if (tools[key] === "clear") {
                     const clearBtn = document.querySelector(".___draw_it_clearBtn");
                     if (clearBtn) clearBtn.click();
+                } else if (tools[key] === "swap") {
+                    const swapBtn = document.querySelector(".___draw_it_swapColorsBtn");
+                    if (swapBtn) swapBtn.click();
                 } else {
                     state.currentTool = tools[key];
                     if (typeof app.updateToolStyles === "function")

@@ -7,6 +7,7 @@ window.drawingApp = {
         canvas: null,
         ctx: null,
         color: "#c885ff",
+        secondaryColor: "#ffae34",
         shapes: [],
         history: [],
         historyIndex: -1,

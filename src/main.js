@@ -9,7 +9,8 @@
 
     app.showNotification("Drawer Activated");
 
-    const { tools, colorInput, lineWidthSlider, opacitySlider } = app.createToolbar();
+    const { tools, colorInput, secondaryColorInput, lineWidthSlider, opacitySlider } =
+        app.createToolbar();
 
     const canvas = document.createElement("canvas");
     canvas.id = "___draw_it_canvas";
@@ -37,13 +38,16 @@
     state.shapes = Array.isArray(restoredShapes) ? restoredShapes : [];
     const restoredControls = app.restore("__arrow_controls", {
         color: state.color,
+        secondaryColor: state.secondaryColor,
         lineWidth: state.lineWidth,
         opacity: state.opacity,
     });
     state.color = restoredControls.color ?? state.color;
+    state.secondaryColor = restoredControls.secondaryColor ?? state.secondaryColor;
     state.lineWidth = restoredControls.lineWidth ?? state.lineWidth;
     state.opacity = restoredControls.opacity ?? state.opacity;
     colorInput.value = state.color;
+    secondaryColorInput.value = state.secondaryColor;
     lineWidthSlider.value = state.lineWidth;
     opacitySlider.value = state.opacity;
 

@@ -116,8 +116,7 @@
     cursor: grabbing;
 }
 
-#___draw_it_overlay #___draw_it_tools button,
-#___draw_it_overlay #___draw_it_tools .___draw_it_colorInput {
+#___draw_it_overlay #___draw_it_tools button {
     all: unset;
     width: 38px;
     height: 38px;
@@ -134,10 +133,73 @@
     box-sizing: border-box;
 }
 
-#___draw_it_overlay #___draw_it_tools button:hover,
-#___draw_it_overlay #___draw_it_tools .___draw_it_colorInput:hover {
+#___draw_it_overlay #___draw_it_tools button:hover {
     background: var(--draw-it-hover-color);
     transform: translateY(-1px);
+}
+
+#___draw_it_overlay #___draw_it_tools .___draw_it_colorPickerContainer {
+    position: relative;
+    width: 38px;
+    height: 38px;
+}
+
+#___draw_it_overlay #___draw_it_tools .___draw_it_colorInput {
+    all: unset;
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    background: var(--draw-it-bg-color);
+    transition:
+        transform 0.2s,
+        z-index 0s;
+}
+
+#___draw_it_overlay #___draw_it_tools .___draw_it_colorInput:hover {
+    transform: scale(1.05);
+}
+
+#___draw_it_overlay #___draw_it_tools .___draw_it_primaryColor {
+    top: 0;
+    left: 0;
+    z-index: 2;
+}
+
+#___draw_it_overlay #___draw_it_tools .___draw_it_secondaryColor {
+    bottom: 0;
+    right: 0;
+    z-index: 1;
+}
+
+#___draw_it_overlay #___draw_it_tools .___draw_it_swapColorsBtn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 16px;
+    height: 16px;
+    padding: 2px;
+    border-radius: 50%;
+    background: var(--draw-it-bg-color);
+    border: 1px solid var(--draw-it-border-color);
+    color: #fff;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#___draw_it_overlay #___draw_it_tools .___draw_it_swapColorsBtn svg {
+    width: 10px;
+    height: 10px;
+}
+
+#___draw_it_overlay #___draw_it_tools .___draw_it_swapColorsBtn:hover {
+    background: var(--draw-it-hover-color);
+    transform: scale(1.1);
 }
 
 #___draw_it_overlay #___draw_it_tools button:active {
@@ -163,12 +225,12 @@
 
 .___draw_it_slider-tooltip {
     position: absolute;
-    top: -24px;
+    top: -30px;
     background: var(--draw-it-accent-color);
     color: #000;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
     font-weight: bold;
     font-family: inherit;
     pointer-events: none;
@@ -176,6 +238,8 @@
     opacity: 0;
     transition: opacity 0.2s;
     line-height: normal;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .___draw_it_slider-container:hover .___draw_it_slider-tooltip {
@@ -262,7 +326,7 @@
 
 .___draw_it_colorInput::-webkit-color-swatch {
     border: none;
-    border-radius: 8px;
+    border-radius: 5px;
 }
 
 /* Modal Styles */
